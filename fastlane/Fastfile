@@ -12,6 +12,24 @@ platform :ios do
     )
   end
 
+  desc "Build an unsigned IPA for SideStore/AltStore (they sign on-device with the user's free Apple ID)"
+  lane :unsigned_ipa do
+    dd = File.expand_path("/tmp/deck-dd")
+    xcodebuild(
+      project: "Deck.xcodeproj",
+      scheme: "Deck",
+      configuration: "Release",
+      destination: "generic/platform=iOS",
+      xcargs: "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -derivedDataPath '#{dd}'"
+    )
+    app = File.join(dd, "Build/Products/Release-iphoneos/Deck.app")
+    UI.user_error!("Deck.app not found at #{app}") unless File.directory?(app)
+    ipa_root = "/tmp/ipa-root"
+    sh("rm -rf '#{ipa_root}' && mkdir -p '#{ipa_root}/Payload' && cp -R '#{app}' '#{ipa_root}/Payload/'")
+    sh("cd '#{ipa_root}' && zip -qr '#{File.expand_path('Deck.ipa')}' Payload")
+    UI.success("Unsigned IPA ready at #{File.expand_path('Deck.ipa')}")
+  end
+
   desc "Register device, provision, and build a dev-signed IPA for sideloading"
   lane :sideload do
     # 1. Make sure the App ID exists (skip iTunes Connect — free accounts).

@@ -15,7 +15,6 @@
 		A1B2C3D4E5F60718293A4B23 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B1A; };
 		A1B2C3D4E5F60718293A4B24 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B1B; };
 		A1B2C3D4E5F60718293A4B25 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B1C; };
-		A1B2C3D4E5F60718293A4B26 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B1D; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +26,6 @@
 		A1B2C3D4E5F60718293A4B1A = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckTools.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B1B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryStore.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B1C = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDownloader.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718293A4B1D = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckIntents.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B1E = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -74,7 +72,6 @@
 				A1B2C3D4E5F60718293A4B17,
 				A1B2C3D4E5F60718293A4B1E,
 				A1B2C3D4E5F60718293A4B06,
-				A1B2C3D4E5F60718293A4B07,
 			);
 			path = Deck;
 			sourceTree = "<group>";
@@ -90,15 +87,6 @@
 			);
 			name = Engine;
 			path = Engine;
-			sourceTree = "<group>";
-		};
-		A1B2C3D4E5F60718293A4B07 = {
-			isa = PBXGroup;
-			children = (
-				A1B2C3D4E5F60718293A4B1D,
-			);
-			name = Intents;
-			path = Intents;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -171,7 +159,6 @@
 				A1B2C3D4E5F60718293A4B23,
 				A1B2C3D4E5F60718293A4B24,
 				A1B2C3D4E5F60718293A4B25,
-				A1B2C3D4E5F60718293A4B26,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
