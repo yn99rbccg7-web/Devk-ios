@@ -2,6 +2,11 @@ name: Build Deck IPA
 
 on:
   workflow_dispatch:
+    inputs:
+      lane:
+        description: "Fastlane lane to run"
+        required: true
+        default: "compilecheck"
 
 jobs:
   build:
@@ -23,8 +28,8 @@ jobs:
           ruby-version: "3.3"
           bundler-cache: true
 
-      - name: Build and sign IPA
-        run: bundle exec fastlane ios sideload
+      - name: Run fastlane lane
+        run: bundle exec fastlane ios ${{ inputs.lane }}
         env:
           APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
           FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
