@@ -1,0 +1,25 @@
+name: Apple sign-in session
+
+# One-off interactive session (via tmate) used to run `fastlane spaceauth`
+# for the free Apple ID. Dispatch manually, connect over SSH, run spaceauth,
+# then close the session. The resulting FASTLANE_SESSION goes into the
+# repo's Actions secrets afterwards.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  signin:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Install fastlane
+        run: gem install fastlane --no-document
+
+      - name: Open interactive session
+        uses: mxschmitt/action-tmate@v3
