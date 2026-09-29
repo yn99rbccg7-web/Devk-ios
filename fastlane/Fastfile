@@ -25,9 +25,10 @@ platform :ios do
     app = File.join(dd, "Build/Products/Release-iphoneos/Deck.app")
     UI.user_error!("Deck.app not found at #{app}") unless File.directory?(app)
     ipa_root = "/tmp/ipa-root"
+    ipa_path = File.expand_path("../Deck.ipa")
     sh("rm -rf '#{ipa_root}' && mkdir -p '#{ipa_root}/Payload' && cp -R '#{app}' '#{ipa_root}/Payload/'")
-    sh("cd '#{ipa_root}' && zip -qr '#{File.expand_path('Deck.ipa')}' Payload")
-    UI.success("Unsigned IPA ready at #{File.expand_path('Deck.ipa')}")
+    sh("cd '#{ipa_root}' && zip -qr '#{ipa_path}' Payload")
+    UI.success("Unsigned IPA ready at #{ipa_path}")
   end
 
   desc "Register device, provision, and build a dev-signed IPA for sideloading"
