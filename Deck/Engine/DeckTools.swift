@@ -15,7 +15,7 @@ enum ToolError: Error, LocalizedError {
 }
 
 /// The deck's hands: sandboxed file tools, memory, tasks, web, notifications.
-final class DeckTools {
+final class DeckTools: Sendable {
     static let knownTools: Set<String> = [
         "read_file", "write_file", "append_file", "list_dir", "delete_file",
         "remember", "recall",
