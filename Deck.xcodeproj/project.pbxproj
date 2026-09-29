@@ -89,6 +89,7 @@
 				A1B2C3D4E5F60718293A4B1C,
 			);
 			name = Engine;
+			path = Engine;
 			sourceTree = "<group>";
 		};
 		A1B2C3D4E5F60718293A4B07 = {
@@ -97,6 +98,7 @@
 				A1B2C3D4E5F60718293A4B1D,
 			);
 			name = Intents;
+			path = Intents;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
