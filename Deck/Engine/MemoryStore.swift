@@ -14,7 +14,7 @@ enum StoreError: Error, LocalizedError {
 }
 
 /// SQLite-backed durable memory + tasks. Lives in the app sandbox.
-final class MemoryStore {
+final class MemoryStore: @unchecked Sendable {
     static let shared = MemoryStore()
 
     private var db: OpaquePointer?

@@ -86,7 +86,7 @@ final class DeckTools {
             return tasks.isEmpty ? "(no open tasks)" : tasks.joined(separator: "\n")
 
         case "complete_task":
-            try store.completeTask(id: Int(args["id"] ?? "") ?? -1)
+            try store.completeTask(id: Int64(Int(args["id"] ?? "") ?? -1))
             return "Task completed."
 
         case "http_fetch":

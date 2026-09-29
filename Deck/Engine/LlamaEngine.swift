@@ -23,7 +23,7 @@ actor LlamaEngine {
     private var model: OpaquePointer?
     private var ctx: OpaquePointer?
     private var vocab: OpaquePointer?
-    private var sampler: OpaquePointer?
+    private var sampler: UnsafeMutablePointer<llama_sampler>?
     private(set) var isLoaded = false
 
     var modelPath: String {
@@ -40,7 +40,8 @@ actor LlamaEngine {
         if isLoaded { return }
         llama_backend_init()
 
-        let mparams = llama_model_default_params()
+        var mparams = llama_model_default_params()
+        mparams.n_gpu_layers = 99 // offload everything to Metal
         guard let m = llama_model_load_from_file(modelPath, mparams) else {
             throw EngineError.loadFailed
         }
@@ -51,7 +52,6 @@ actor LlamaEngine {
         cparams.n_ctx = UInt32(nCtx)
         cparams.n_batch = 512
         cparams.n_ubatch = 512
-        cparams.n_gpu_layers = 99 // offload everything to Metal
         guard let c = llama_init_from_model(m, cparams) else {
             llama_model_free(m)
             model = nil

@@ -99,7 +99,7 @@ final class AgentLoop: ObservableObject {
                 messages.append(status)
                 let observation: String
                 do {
-                    observation = await tools.run(name: action.name, args: action.args)
+                    observation = try await tools.run(name: action.name, args: action.args)
                 } catch {
                     observation = "TOOL ERROR: \(error.localizedDescription)"
                 }

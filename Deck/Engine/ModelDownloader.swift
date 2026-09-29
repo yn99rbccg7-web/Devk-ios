@@ -30,7 +30,9 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
 
     var modelExists: Bool {
         let exists = FileManager.default.fileExists(atPath: modelURL.path)
-        if exists, totalMB = Double((try? FileManager.default.attributesOfItem(atPath: modelURL.path)[.size] as? Int) ?? 0) / 1_000_000
+        if exists {
+            totalMB = Double((try? FileManager.default.attributesOfItem(atPath: modelURL.path)[.size] as? Int) ?? 0) / 1_000_000
+        }
         return exists
     }
 

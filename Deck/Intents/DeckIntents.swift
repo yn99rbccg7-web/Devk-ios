@@ -4,9 +4,9 @@ import UIKit
 /// "Hey Siri, ask Deck <question>" — works from any app.
 /// Opens Deck via its URL scheme and auto-runs the question.
 struct AskDeckIntent: AppIntent {
-    static var title: LocalizedStringResource = "Ask Deck"
-    static var description = IntentDescription("Ask your on-device Deck a question.")
-    static var openAppWhenRun: Bool = false
+    static let title: LocalizedStringResource = "Ask Deck"
+    static let description = IntentDescription("Ask your on-device Deck a question.")
+    static let openAppWhenRun = false
 
     @Parameter(title: "Question")
     var question: String
@@ -24,9 +24,9 @@ struct AskDeckIntent: AppIntent {
 
 /// "Hey Siri, tell Deck to <task>" — runs an agentic task.
 struct DoDeckIntent: AppIntent {
-    static var title: LocalizedStringResource = "Tell Deck to do something"
-    static var description = IntentDescription("Give your on-device Deck a task to carry out.")
-    static var openAppWhenRun: Bool = false
+    static let title: LocalizedStringResource = "Tell Deck to do something"
+    static let description = IntentDescription("Give your on-device Deck a task to carry out.")
+    static let openAppWhenRun = false
 
     @Parameter(title: "Task")
     var task: String
