@@ -84,7 +84,7 @@ final class AgentLoop: ObservableObject {
         var turnText = ""
         while step < maxSteps {
             step += 1
-            let prompt = LlamaEngine.llama3Chat(system: systemPrompt, transcript: transcript)
+            let prompt = LlamaEngine.qwen3Chat(system: systemPrompt, transcript: transcript)
 
             var raw = ""
             let stream = await engine.generate(prompt: prompt, maxTokens: 512)
@@ -107,7 +107,7 @@ final class AgentLoop: ObservableObject {
                     messages.remove(at: idx)
                 }
                 transcript += LlamaEngine.assistantTurn(raw)
-                    + "<|start_header_id|>user<|end_header_id|>\n\nOBSERVATION: \(observation)<|eot_id|>"
+                    + "<|im_start|>user\nOBSERVATION: \(observation)<|im_end|>\n"
                 turnText = ""
                 replaceStreaming(with: "")
             } else {
@@ -124,7 +124,10 @@ final class AgentLoop: ObservableObject {
     private struct ParsedAction { let name: String; let args: [String: String] }
 
     private func parseAction(from text: String) -> ParsedAction? {
-        let lines = text.components(separatedBy: .newlines)
+        // Strip Qwen3 thinking traces so reasoning can't trigger phantom tool calls.
+        let noThink = text.replacingOccurrences(of: "<think>.*?</think>", with: "",
+                                                options: [.regularExpression, .dotMatchesLineSeparators])
+        let lines = noThink.components(separatedBy: .newlines)
         var name: String?
         var argsJSON = ""
         var inArgs = false
@@ -151,8 +154,10 @@ final class AgentLoop: ObservableObject {
     }
 
     private func cleanFinal(_ text: String) -> String {
-        // Strip THOUGHT/ACTION scaffolding if the model leaked it into a final answer.
-        let lines = text.components(separatedBy: .newlines).filter { line in
+        // Strip Qwen3 <think> traces and THOUGHT/ACTION scaffolding if leaked.
+        let noThink = text.replacingOccurrences(of: "<think>.*?</think>", with: "",
+                                                options: [.regularExpression, .dotMatchesLineSeparators])
+        let lines = noThink.components(separatedBy: .newlines).filter { line in
             let t = line.trimmingCharacters(in: .whitespaces).uppercased()
             return !t.hasPrefix("THOUGHT:") && !t.hasPrefix("ACTION:") && !t.hasPrefix("ARGS:")
         }

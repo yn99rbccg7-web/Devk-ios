@@ -9,10 +9,10 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
         case idle, downloading, done, failed(String)
     }
 
-    /// Default brain: uncensored Dolphin 8B, Q4_K_M. Verify the exact
-    /// filename on the build Mac; editable in Settings at runtime.
+    /// Default brain: uncensored Qwen3 1.7B abliterated, Q4_K_M (~1.2GB).
+    /// Editable in Settings at runtime.
     static let defaultModelURL =
-        "https://huggingface.co/bartowski/dolphin-2.9-llama3-8b-GGUF/resolve/main/dolphin-2.9-llama3-8b-Q4_K_M.gguf"
+        "https://huggingface.co/mradermacher/Qwen3-1.7B-abliterated-GGUF/resolve/main/Qwen3-1.7B-abliterated.Q4_K_M.gguf"
 
     @Published var state: State = .idle
     @Published var progress: Double = 0
@@ -25,7 +25,7 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
 
     var modelURL: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("models/dolphin.gguf")
+            .appendingPathComponent("models/brain.gguf")
     }
 
     var modelExists: Bool {

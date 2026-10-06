@@ -28,7 +28,7 @@ actor LlamaEngine {
 
     var modelPath: String {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("models/dolphin.gguf").path
+            .appendingPathComponent("models/brain.gguf").path
     }
 
     var modelExists: Bool {
@@ -144,7 +144,7 @@ actor LlamaEngine {
             if len > 0 {
                 let bytes = buf.prefix(Int(len)).map { UInt8(bitPattern: $0) }
                 if let piece = String(bytes: bytes, encoding: .utf8) {
-                    if piece == "<|eot_id|>" { break }
+                    if piece == "<|im_end|>" { break }  // Qwen3 end-of-turn
                     onPiece(piece)
                 }
             }
@@ -162,20 +162,20 @@ actor LlamaEngine {
         }
     }
 
-    // MARK: - Chat template (Llama 3)
+    // MARK: - Chat template (Qwen3 / ChatML)
 
-    nonisolated static func llama3Chat(system: String,
-                                       transcript: String) -> String {
-        "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n\(system)<|eot_id|>" +
+    nonisolated static func qwen3Chat(system: String,
+                                     transcript: String) -> String {
+        "<|im_start|>system\n\(system)<|im_end|>\n" +
         transcript +
-        "<|start_header_id|>assistant<|end_header_id|>\n\n"
+        "<|im_start|>assistant\n"
     }
 
     nonisolated static func userTurn(_ text: String) -> String {
-        "<|start_header_id|>user<|end_header_id|>\n\n\(text)<|eot_id|>"
+        "<|im_start|>user\n\(text)<|im_end|>\n"
     }
 
     nonisolated static func assistantTurn(_ text: String) -> String {
-        "<|start_header_id|>assistant<|end_header_id|>\n\n\(text)<|eot_id|>"
+        "<|im_start|>assistant\n\(text)<|im_end|>\n"
     }
 }

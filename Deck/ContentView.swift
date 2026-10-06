@@ -78,7 +78,7 @@ struct ContentView: View {
                 NavigationStack {
                     Form {
                         Section("Brain") {
-                            Text("Dolphin 8B (uncensored) · on-device · offline")
+                            Text("Qwen3 1.7B (uncensored) · on-device · offline")
                                 .font(.caption)
                         }
                         Section {
