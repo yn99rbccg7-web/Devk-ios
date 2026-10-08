@@ -27,7 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
-        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan",
+        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info",
     ]
 
     private let store = MemoryStore.shared
@@ -164,6 +164,9 @@ final class DeckTools: Sendable {
 
         case "lan_scan":
             return await lanScan()
+
+        case "bin_info":
+            return binInfo(path: args["path"] ?? "")
 
         case "jailbreak_status":
             return jailbreakStatus()
@@ -683,5 +686,120 @@ final class DeckTools: Sendable {
         let lines = found.sorted { $0.0 < $1.0 }
             .map { "\($0.0): \($0.1.joined(separator: ","))" }
         return "LIVE HOSTS on \(dotted(network))/24:\n" + lines.joined(separator: "\n")
+    }
+
+    // MARK: - On-device reverse engineering (light static analysis)
+
+    /// Static analysis of a Mach-O binary: headers, segments, imported dylibs,
+    /// entry point, strings. Works on the deck folder or the app's own binary
+    /// ("self"). This is the real on-device RE slice: no decompiler fits on a
+    /// phone (Ghidra/Hopper/IDA need desktop engines + GBs of RAM). Heavy lifting
+    /// — decompile, call graphs, xrefs — runs via REA on a remote box over ssh_exec.
+    private func binInfo(path: String) -> String {
+        let url: URL
+        if path == "self" {
+            guard let eurl = Bundle.main.executableURL else { return "No executable URL." }
+            url = eurl
+        } else {
+            do { url = try jailed(path) } catch { return "Bad path: \(error)" }
+        }
+        guard let data = try? Data(contentsOf: url), !data.isEmpty else {
+            return "Cannot read file."
+        }
+        func u32(_ o: Int) -> UInt32? {
+            guard o + 4 <= data.count else { return nil }
+            let b0 = UInt32(data[o]), b1 = UInt32(data[o + 1])
+            let b2 = UInt32(data[o + 2]), b3 = UInt32(data[o + 3])
+            return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)
+        }
+        func u32be(_ o: Int) -> UInt32? {
+            guard let v = u32(o) else { return nil }
+            return v.byteSwapped
+        }
+        func u64(_ o: Int) -> UInt64? {
+            guard let lo = u32(o), let hi = u32(o + 4) else { return nil }
+            return UInt64(lo) | (UInt64(hi) << 32)
+        }
+        func cstr(_ o: Int, max: Int) -> String? {
+            guard o < data.count else { return nil }
+            var end = o
+            while end < data.count && end < o + max && data[end] != 0 { end += 1 }
+            return String(bytes: data[o..<end], encoding: .utf8)
+        }
+        var r: [String] = []
+        guard let magic = u32(0) else { return "Too small." }
+
+        // FAT binary: list contained architectures.
+        if magic == 0xcafebabe {
+            guard let n = u32be(4) else { return "Truncated fat header." }
+            r.append("fat binary, \(n) architectures:")
+            for i in 0..<min(n, 8) {
+                let o = 8 + Int(i) * 20
+                guard let cput = u32be(o), let off = u32be(o + 8), let sz = u32be(o + 12) else { break }
+                let arch = cput == 0x0100000C ? "arm64" : cput == 0x01000007 ? "x86_64" : String(format: "0x%x", cput)
+                r.append("  \(arch) @0x\(String(off, radix: 16)) (\(sz) bytes)")
+            }
+            return r.joined(separator: "\n")
+        }
+        guard magic == 0xfeedfacf || magic == 0xfeedface else {
+            return String(format: "Not Mach-O (magic 0x%x).", magic)
+        }
+        let is64 = magic == 0xfeedfacf
+        let cput = u32(4) ?? 0, ftype = u32(12) ?? 0, ncmds = u32(16) ?? 0
+        let arch = cput == 0x0100000C ? "arm64" : cput == 0x01000007 ? "x86_64" : String(format: "cpu 0x%x", cput)
+        let ftn: String
+        switch ftype {
+        case 0x2: ftn = "executable"
+        case 0x6: ftn = "dylib"
+        case 0x8: ftn = "bundle"
+        default: ftn = String(format: "type 0x%x", ftype)
+        }
+        r.append("mach-o \(is64 ? "64" : "32")-bit \(arch) \(ftn), \(ncmds) load commands")
+
+        var segs: [String] = []
+        var dylibs: [String] = []
+        var entry: String = "?"
+        var off = 32
+        for _ in 0..<min(ncmds, 200) {
+            guard let cmd = u32(off), let csz = u32(off + 4), csz >= 8 else { break }
+            switch cmd {
+            case 0x19: // LC_SEGMENT_64
+                if let name = cstr(off + 8, max: 16) { segs.append(name) }
+            case 0x1: // LC_SEGMENT (32-bit)
+                if let name = cstr(off + 8, max: 16) { segs.append(name) }
+            case 0xC, 0x18, 0x80000022, 0x80000024: // LC_LOAD_DYLIB & friends
+                if let no = u32(off + 8), let name = cstr(off + Int(no), max: 256) {
+                    dylibs.append((name as NSString).lastPathComponent)
+                }
+            case 0x80000028: // LC_MAIN
+                if let eo = u64(off + 8) { entry = "0x\(String(eo, radix: 16))" }
+            default: break
+            }
+            off += Int(csz)
+            if off >= data.count { break }
+        }
+        r.append("segments: \(segs.joined(separator: ", "))")
+        r.append("entry: \(entry)")
+        r.append("dylibs (\(dylibs.count)): \(dylibs.joined(separator: ", "))")
+
+        // Strings pass: printable runs >= 5 chars, unique, capped.
+        var seen = Set<String>()
+        var strs: [String] = []
+        var run: [UInt8] = []
+        func flush() {
+            if run.count >= 5 {
+                let s = String(bytes: run, encoding: .utf8) ?? ""
+                if !s.isEmpty && seen.insert(s).inserted && strs.count < 300 { strs.append(s) }
+            }
+            run.removeAll(keepingCapacity: true)
+        }
+        for b in data {
+            if b >= 0x20 && b < 0x7F { run.append(b) } else { flush() }
+        }
+        flush()
+        r.append("strings (\(strs.count) unique, capped):")
+        let body = strs.joined(separator: "\n")
+        r.append(String(body.prefix(4000)))
+        return r.joined(separator: "\n")
     }
 }
