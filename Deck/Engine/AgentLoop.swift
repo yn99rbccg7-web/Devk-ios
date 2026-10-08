@@ -55,6 +55,7 @@ final class AgentLoop: ObservableObject {
         messages.append(ChatMessage(role: .user, text: text))
         isWorking = true
         defer { isWorking = false }
+        LiveDeck.shared.update(status: "thinking", line: String(text.prefix(80)))
 
         // Ensure the model is loaded.
         if !(await engine.isLoaded) {
@@ -65,6 +66,7 @@ final class AgentLoop: ObservableObject {
                 messages.append(ChatMessage(role: .assistant,
                                             text: "Model failed to load: \(error.localizedDescription)"))
                 engineState = "idle"
+                LiveDeck.shared.update(status: "ready", line: "Model failed to load")
                 return
             }
         }
@@ -79,6 +81,9 @@ final class AgentLoop: ObservableObject {
                 transcript += LlamaEngine.assistantTurn(m.text)
             }
         }
+
+        let screenCtx = ScreenMemory.shared.contextBlock()
+        if !screenCtx.isEmpty { transcript = screenCtx + transcript }
 
         var step = 0
         var turnText = ""
@@ -116,6 +121,10 @@ final class AgentLoop: ObservableObject {
                 break
             }
         }
+        ScreenMemory.shared.pruneAfterTurn(recentText: transcript)
+        let snippet = messages.last(where: { $0.role == .assistant })?.text ?? ""
+        LiveDeck.shared.update(status: "ready",
+                               line: snippet.isEmpty ? "Done" : String(snippet.prefix(100)))
         engineState = "idle"
     }
 
@@ -195,8 +204,10 @@ final class AgentLoop: ObservableObject {
     // MARK: - Deep links (deck://ask?question=… / deck://do?task=…)
 
     func handleURL(_ url: URL) {
-        guard url.scheme == "deck",
-              let host = url.host, (host == "ask" || host == "do"),
+        guard url.scheme == "deck", let host = url.host else { return }
+        // deck://chat — foregrounding the app is the action (Live Activity pill).
+        if host == "chat" { return }
+        guard (host == "ask" || host == "do"),
               let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems,
               let q = items.first(where: { $0.name == "question" || $0.name == "task" })?.value,
               !q.isEmpty
@@ -209,3 +220,4 @@ final class AgentLoop: ObservableObject {
         streamingID = nil
     }
 }
+

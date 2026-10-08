@@ -15,6 +15,14 @@
 		A1B2C3D4E5F60718293A4B23 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B1A; };
 		A1B2C3D4E5F60718293A4B24 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B1B; };
 		A1B2C3D4E5F60718293A4B25 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B1C; };
+		D3C1F00D0000000000000007 = {isa = PBXBuildFile; fileRef = D3C1F00D0000000000000002; };
+		D3C1F00D0000000000000008 = {isa = PBXBuildFile; fileRef = D3C1F00D0000000000000003; };
+		D3C1F00D0000000000000009 = {isa = PBXBuildFile; fileRef = D3C1F00D0000000000000004; };
+		D3C1F00D0000000000000011 = {isa = PBXBuildFile; fileRef = D3C1F00D0000000000000001; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D3C1F00D0000000000000015 = {isa = PBXBuildFile; fileRef = D3C1F00D0000000000000004; };
+		D3C1F00D0000000000000016 = {isa = PBXBuildFile; fileRef = D3C1F00D0000000000000019; };
+		D3C1F00D0000000000000017 = {isa = PBXBuildFile; fileRef = D3C1F00D000000000000001A; };
+		D3C1F00D0000000000000018 = {isa = PBXBuildFile; fileRef = D3C1F00D000000000000001B; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +35,14 @@
 		A1B2C3D4E5F60718293A4B1B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryStore.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B1C = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDownloader.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B1E = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D3C1F00D0000000000000001 = {isa = PBXFileReference; explicitFileType = wrapper.app-extension; includeInIndex = 0; path = DeckWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D3C1F00D0000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckWidgetBundle.swift; sourceTree = "<group>"; };
+		D3C1F00D0000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckLiveActivity.swift; sourceTree = "<group>"; };
+		D3C1F00D0000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckAttributes.swift; sourceTree = "<group>"; };
+		D3C1F00D0000000000000005 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D3C1F00D0000000000000019 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDeck.swift; sourceTree = "<group>"; };
+		D3C1F00D000000000000001A = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenMonitor.swift; sourceTree = "<group>"; };
+		D3C1F00D000000000000001B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenMemory.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +51,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1B2C3D4E5F60718293A4B15,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3C1F00D000000000000000B = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -47,6 +70,7 @@
 				A1B2C3D4E5F60718293A4B05,
 				A1B2C3D4E5F60718293A4B04,
 				A1B2C3D4E5F60718293A4B03,
+				D3C1F00D0000000000000006,
 			);
 			sourceTree = "<group>";
 		};
@@ -54,6 +78,7 @@
 			isa = PBXGroup;
 			children = (
 				A1B2C3D4E5F60718293A4B09,
+				D3C1F00D0000000000000001,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -84,9 +109,23 @@
 				A1B2C3D4E5F60718293A4B1A,
 				A1B2C3D4E5F60718293A4B1B,
 				A1B2C3D4E5F60718293A4B1C,
+				D3C1F00D0000000000000019,
+				D3C1F00D000000000000001A,
+				D3C1F00D000000000000001B,
 			);
 			name = Engine;
 			path = Engine;
+			sourceTree = "<group>";
+		};
+		D3C1F00D0000000000000006 = {
+			isa = PBXGroup;
+			children = (
+				D3C1F00D0000000000000002,
+				D3C1F00D0000000000000003,
+				D3C1F00D0000000000000004,
+				D3C1F00D0000000000000005,
+			);
+			path = DeckWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -99,10 +138,9 @@
 				A1B2C3D4E5F60718293A4B61,
 				A1B2C3D4E5F60718293A4B0B,
 				A1B2C3D4E5F60718293A4B0C,
+				D3C1F00D0000000000000012,
 			);
 			buildRules = (
-			);
-			dependencies = (
 			);
 			name = Deck;
 			packageProductDependencies = (
@@ -111,6 +149,26 @@
 			productName = Deck;
 			productReference = A1B2C3D4E5F60718293A4B09;
 			productType = "com.apple.product-type.application";
+			dependencies = (
+				D3C1F00D0000000000000013,
+			);
+		};
+		D3C1F00D000000000000000D = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D3C1F00D000000000000000E;
+			buildPhases = (
+				D3C1F00D000000000000000A,
+				D3C1F00D000000000000000B,
+				D3C1F00D000000000000000C,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DeckWidget;
+			productName = DeckWidget;
+			productReference = D3C1F00D0000000000000001;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -133,12 +191,20 @@
 			projectRoot = "";
 			targets = (
 				A1B2C3D4E5F60718293A4B08,
+				D3C1F00D000000000000000D,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A1B2C3D4E5F60718293A4B0C = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3C1F00D000000000000000C = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -159,10 +225,56 @@
 				A1B2C3D4E5F60718293A4B23,
 				A1B2C3D4E5F60718293A4B24,
 				A1B2C3D4E5F60718293A4B25,
+				D3C1F00D0000000000000015,
+				D3C1F00D0000000000000016,
+				D3C1F00D0000000000000017,
+				D3C1F00D0000000000000018,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3C1F00D000000000000000A = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3C1F00D0000000000000007,
+				D3C1F00D0000000000000008,
+			D3C1F00D0000000000000009,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D3C1F00D0000000000000012 = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D3C1F00D0000000000000011,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D3C1F00D0000000000000013 = {
+			isa = PBXTargetDependency;
+			target = D3C1F00D000000000000000D;
+			targetProxy = D3C1F00D0000000000000014;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXContainerItemProxy section */
+		D3C1F00D0000000000000014 = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1B2C3D4E5F60718293A4B01;
+			proxyType = 1;
+			remoteGlobalIDString = D3C1F00D000000000000000D;
+			remoteInfo = DeckWidget;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin XCBuildConfiguration section */
 		A1B2C3D4E5F60718293A4B0F = {
@@ -240,6 +352,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Deck/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -263,6 +376,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Deck/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -274,6 +388,51 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		D3C1F00D000000000000000F = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DeckWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.deck.Deck.DeckWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		D3C1F00D0000000000000010 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DeckWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.deck.Deck.DeckWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -294,6 +453,15 @@
 			buildConfigurations = (
 				A1B2C3D4E5F60718293A4B11,
 				A1B2C3D4E5F60718293A4B12,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D3C1F00D000000000000000E = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D3C1F00D000000000000000F,
+				D3C1F00D0000000000000010,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
