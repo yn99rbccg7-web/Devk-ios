@@ -147,7 +147,6 @@ final class DeckTools: Sendable {
                                  port: Int(args["port"] ?? "") ?? 22,
                                  username: args["username"] ?? "",
                                  password: args["password"],
-                                 privateKey: args["privateKey"],
                                  command: args["command"] ?? "",
                                  timeout: Double(args["timeout"] ?? "") ?? 30)
 
@@ -282,25 +281,25 @@ final class DeckTools: Sendable {
 
     // MARK: - SSH (Citadel, pure-Swift SSH)
 
-    /// Run a command on a remote server. Auth: password, or OpenSSH ed25519 private key string.
+    /// Run a command on a remote server via password auth (Citadel, pure-Swift SSH).
     /// Host key is accepted on first connection (TOFU pinning is future work).
+    /// Key-file auth follows once the parser API is pinned against the resolved Citadel.
     /// Credentials should live in the deck's memory store, not pasted into chat.
     private func sshExec(host: String, port: Int, username: String, password: String?,
-                         privateKey: String?, command: String, timeout: Double) async -> String {
+                         command: String, timeout: Double) async -> String {
         guard !host.isEmpty, !username.isEmpty, !command.isEmpty else {
             return "Bad host/username/command."
         }
         let auth: @Sendable () -> SSHAuthenticationMethod = {
-            if let key = privateKey, !key.isEmpty,
-               let ed = try? Curve25519.Signing.PrivateKey(sshEd25519: key) {
-                return .ed25519(username: username, privateKey: ed)
-            }
-            return .passwordBased(username: username, password: password ?? "")
+            .passwordBased(username: username, password: password ?? "")
         }
-        var settings = SSHClientSettings(host: host, port: port,
-                                         authenticationMethod: auth,
-                                         hostKeyValidator: .acceptAnything())
-        settings.connectTimeout = .seconds(Int64(min(max(timeout, 5), 120)))
+        let settings: SSHClientSettings = {
+            var s = SSHClientSettings(host: host, port: port,
+                                      authenticationMethod: auth,
+                                      hostKeyValidator: .acceptAnything())
+            s.connectTimeout = .seconds(Int64(min(max(timeout, 5), 120)))
+            return s
+        }()
         do {
             return try await withThrowingTaskGroup(of: String.self) { group in
                 group.addTask {
@@ -659,7 +658,7 @@ final class DeckTools: Sendable {
             if h != ipRaw { targets.append(h) }
             h += 1
         }
-        func dotted(_ v: UInt32) -> String {
+        @Sendable func dotted(_ v: UInt32) -> String {
             "\((v >> 24) & 0xFF).\((v >> 16) & 0xFF).\((v >> 8) & 0xFF).\(v & 0xFF)"
         }
         let ports = ["22", "80", "443"]

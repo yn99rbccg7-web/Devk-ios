@@ -32,7 +32,7 @@ final class KeepAlive: @unchecked Sendable {
         }
         // Silent audio source: zeroes every buffer, loops forever.
         let engine = AVAudioEngine()
-        let src = AVAudioSourceNode { _, _, _, audioBufferList -> OSStatus in
+        let src = AVAudioSourceNode { _, _, _, _, audioBufferList -> OSStatus in
             let abl = UnsafeMutableAudioBufferListPointer(audioBufferList)
             for buffer in abl {
                 memset(buffer.mData, 0, Int(buffer.mDataByteSize))
