@@ -27,7 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
-        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info", "social_search",
+        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info", "social_search", "list_skills", "use_skill",
     ]
 
     private let store = MemoryStore.shared
@@ -170,6 +170,12 @@ final class DeckTools: Sendable {
 
         case "social_search":
             return await socialSearch(platform: args["platform"] ?? "", query: args["query"] ?? "")
+
+        case "list_skills":
+            return listSkills()
+
+        case "use_skill":
+            return useSkill(name: args["name"] ?? "")
 
         case "jailbreak_status":
             return jailbreakStatus()
@@ -932,5 +938,44 @@ final class DeckTools: Sendable {
             if !title.isEmpty { out.append("• \(title)\n  \(link)") }
         }
         return out.isEmpty ? "No items parsed." : out.joined(separator: "\n\n")
+    }
+
+    // MARK: - Skills (mattpocock/skills playbooks, bundled offline)
+
+    /// The bundled skill library: name -> {description, body}. Parsed on demand;
+    /// small enough that no caching (and no shared mutable state) is needed.
+    private func skillBook() -> [String: [String: Any]] {
+        var book: [String: [String: Any]] = [:]
+        for res in ["skills1", "skills2"] {
+            guard let url = Bundle.main.url(forResource: res, withExtension: "json"),
+                  let data = try? Data(contentsOf: url),
+                  let obj = try? JSONSerialization.jsonObject(with: data) as? [String: [String: Any]] else {
+                continue
+            }
+            for (k, v) in obj { book[k] = v }
+        }
+        return book
+    }
+
+    private func listSkills() -> String {
+        let book = skillBook()
+        if book.isEmpty { return "Skill library not bundled." }
+        let lines = book.keys.sorted().map { k -> String in
+            let d = (book[k]?["description"] as? String) ?? ""
+            let mi = (book[k]?["model_invoked"] as? Bool) ?? true
+            return "- \(k): \(d)" + (mi ? "" : " [upstream marks user-invoked]")
+        }
+        return "SKILLS (\(book.count)) — call use_skill {\"name\": \"<skill>\"} to load a playbook:\n"
+            + lines.joined(separator: "\n")
+    }
+
+    private func useSkill(name: String) -> String {
+        let book = skillBook()
+        let key = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let match = book.keys.first { $0.lowercased() == key || $0.lowercased().hasSuffix("/" + key) }
+        guard let m = match, let body = book[m]?["body"] as? String else {
+            return "Unknown skill \(name). Call list_skills {} for the catalog."
+        }
+        return "SKILL PLAYBOOK: \(m) — follow it now.\n\n" + String(body.prefix(9000))
     }
 }
