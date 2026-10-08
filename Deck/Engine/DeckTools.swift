@@ -27,7 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
-        "ssh_exec", "js_run", "sys_scan",
+        "ssh_exec", "js_run", "sys_scan", "jailbreak_status",
     ]
 
     private let store = MemoryStore.shared
@@ -156,6 +156,9 @@ final class DeckTools: Sendable {
 
         case "sys_scan":
             return await sysScan()
+
+        case "jailbreak_status":
+            return jailbreakStatus()
 
         case "port_scan":
             return await portScan(host: args["host"] ?? "",
@@ -363,6 +366,22 @@ final class DeckTools: Sendable {
         let pct = dev.batteryLevel < 0 ? "?" : "\(Int(dev.batteryLevel * 100))%"
         r.append("battery: \(pct)")
 
+        r.append("== KERNEL (uname) ==")
+        var uts = utsname()
+        uname(&uts)
+        let machine = withUnsafePointer(to: &uts.machine) {
+            $0.withMemoryRebound(to: CChar.self, capacity: 256) { String(cString: $0) }
+        }
+        let release = withUnsafePointer(to: &uts.release) {
+            $0.withMemoryRebound(to: CChar.self, capacity: 256) { String(cString: $0) }
+        }
+        let version = withUnsafePointer(to: &uts.version) {
+            $0.withMemoryRebound(to: CChar.self, capacity: 512) { String(cString: $0) }
+        }
+        r.append("machine: \(machine)")
+        r.append("kernel release: \(release)")
+        r.append("kernel version: \(version.prefix(160))")
+
         r.append("== CPU / MEMORY / DISK ==")
         r.append("cpus: \(ProcessInfo.processInfo.processorCount) active \(ProcessInfo.processInfo.activeProcessorCount)")
         let memGB = Double(ProcessInfo.processInfo.physicalMemory) / 1_073_741_824
@@ -445,5 +464,72 @@ final class DeckTools: Sendable {
             p = cur.pointee.ifa_next
         }
         return result
+    }
+
+    // MARK: - Jailbreak operations
+
+    /// Jailbreak readiness: fingerprints THIS build and matches it against the
+    /// known-exploit database. Honest by construction: discovery of new bugs is
+    /// research (VM fuzzing pipeline / public drops), not something scan data invents.
+    /// When a real exploit exists for this build, the deck assembles the package
+    /// (exploit + offsets derived for this exact kernel build), explains it fully,
+    /// and waits for explicit user confirmation. It never executes on its own.
+    /// DB date: 2026-10-08. The rooootdev watch feeds updates.
+    private func jailbreakStatus() -> String {
+        var uts = utsname()
+        uname(&uts)
+        let machine = withUnsafePointer(to: &uts.machine) {
+            $0.withMemoryRebound(to: CChar.self, capacity: 256) { String(cString: $0) }
+        }
+        let ios = UIDevice.current.systemVersion
+
+        // checkm8 (bootrom) covers A11 and below = iPhone10,x and older.
+        var checkm8Vuln = false
+        if machine.hasPrefix("iPhone"), let major = Int(machine.dropFirst(6).prefix(while: { $0.isNumber })), major <= 10 {
+            checkm8Vuln = true
+        }
+
+        func ver(_ s: String) -> [Int] { s.split(separator: ".").compactMap { Int($0) } }
+        func le(_ a: String, _ b: String) -> Bool {
+            let x = ver(a), y = ver(b)
+            for i in 0..<max(x.count, y.count) {
+                let p = i < x.count ? x[i] : 0, q = i < y.count ? y[i] : 0
+                if p != q { return p < q }
+            }
+            return true
+        }
+
+        var r: [String] = []
+        r.append("== YOUR BUILD ==")
+        r.append("machine: \(machine), iOS \(ios)")
+        r.append("checkm8-vulnerable chip: \(checkm8Vuln ? "YES (A11 or older)" : "no (A12+)")")
+        r.append("")
+        r.append("== KNOWN JAILBREAKS ==")
+        let db: [(String, String, Bool)] = [
+            ("checkra1n / palera1n (checkm8 bootrom)", "A5-A11, any iOS", checkm8Vuln),
+            ("unc0ver / Taurine", "iOS <= 14.8", le(ios, "14.8")),
+            ("kfd-based (kernel file descriptor)", "iOS 16.0 - 16.6.1", le("16.0", ios) && le(ios, "16.6.1")),
+            ("lara", "iOS <= 26.0.1", le(ios, "26.0.1")),
+            ("mond", "iOS 27.0 betas only (not final/RC)", false),
+        ]
+        var live = false
+        for (name, coverage, ok) in db {
+            r.append("\(ok ? "LIVE" : "dead"): \(name) [\(coverage)]")
+            if ok { live = true }
+        }
+        r.append("")
+        if live {
+            r.append("VERDICT: exploit exists for this build.")
+            r.append("Next: deck derives offsets for this exact kernel build, assembles the")
+            r.append("package, then presents the full plan — mechanism, persistence model,")
+            r.append("traces left behind, how it avoids Apple/kernel-guard detection, risks —")
+            r.append("and STOPS for your explicit confirmation. Nothing executes without it.")
+        } else {
+            r.append("VERDICT: no public jailbreak for this build (iOS \(ios) on \(machine)).")
+            r.append("New bugs come from research (fuzzing pipeline / public drops), not from")
+            r.append("scan data. The rooootdev watch monitors for the first real signal.")
+            r.append("When one lands, the flow above activates: assemble, explain, confirm, execute.")
+        }
+        return r.joined(separator: "\n")
     }
 }

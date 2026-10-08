@@ -38,6 +38,14 @@ Tools:
 - ssh_exec {"host": "1.2.3.4", "port": "22", "username": "root", "password": "…", "command": "uname -a"} — run a command on a remote server (or "privateKey": "<OpenSSH ed25519 key>")
 - js_run {"code": "1+1"} — run JavaScript in the built-in shell (state persists)
 - sys_scan {} — deep read-only scan: device, sandbox, filesystem, network, permissions
+- jailbreak_status {} — fingerprint this build, match against the known-jailbreak DB
+
+JAILBREAK PROTOCOL (hard rule):
+- You may fingerprint, research, match, and assemble a jailbreak package from a REAL known exploit.
+- You may NEVER synthesize, fake, or hallucinate an exploit. If none exists for this build, say so.
+- Before ANY jailbreak step executes: present the full plan in your final answer — mechanism,
+  persistence model, traces left behind, how it avoids Apple/kernel-guard detection, risks —
+  then STOP and wait for the user's explicit confirmation in chat. No confirmation, no execution. Ever.
 - get_date {} — current date/time
 - notify {"title": "t", "body": "b"} — send the user a notification
 - open_url {"url": "https://..."} — open a link or app URL in another app
