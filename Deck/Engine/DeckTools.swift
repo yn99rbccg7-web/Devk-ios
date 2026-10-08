@@ -27,7 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
-        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status",
+        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan",
     ]
 
     private let store = MemoryStore.shared
@@ -162,6 +162,9 @@ final class DeckTools: Sendable {
 
         case "net_status":
             return await netStatus()
+
+        case "lan_scan":
+            return await lanScan()
 
         case "jailbreak_status":
             return jailbreakStatus()
@@ -622,5 +625,64 @@ final class DeckTools: Sendable {
             }
             mon.start(queue: .global())
         }
+    }
+
+    // MARK: - WiFi LAN discovery (real on-device recon)
+
+    /// Finds live hosts on the joined WiFi /24 via TCP connect. This is the real WiFi
+    /// recon an iPhone can do: no monitor mode / packet injection exists on iPhone
+    /// radios for apps, so deauth/handshake-sniffing is NOT a phone job — that needs
+    /// an external radio driven over ssh_exec. Phone = brain, external radio = hands.
+    private func lanScan() async -> String {
+        var ipRaw: UInt32 = 0
+        var maskRaw: UInt32 = 0
+        var head: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&head) == 0, let first = head else { return "getifaddrs failed." }
+        defer { freeifaddrs(head) }
+        var p: UnsafeMutablePointer<ifaddrs>? = first
+        while let cur = p {
+            if String(cString: cur.pointee.ifa_name) == "en0",
+               let addr = cur.pointee.ifa_addr, addr.pointee.sa_family == UInt8(AF_INET),
+               let mask = cur.pointee.ifa_netmask {
+                ipRaw = addr.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr.s_addr }
+                maskRaw = mask.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr.s_addr }
+                break
+            }
+            p = cur.pointee.ifa_next
+        }
+        guard ipRaw != 0, maskRaw != 0 else { return "Not on WiFi (no en0 IPv4)." }
+        let network = ipRaw & maskRaw
+        let broadcast = network | ~maskRaw
+        var targets: [UInt32] = []
+        var h = network + 1
+        while h < broadcast, targets.count < 512 {
+            if h != ipRaw { targets.append(h) }
+            h += 1
+        }
+        func dotted(_ v: UInt32) -> String {
+            "\((v >> 24) & 0xFF).\((v >> 16) & 0xFF).\((v >> 8) & 0xFF).\(v & 0xFF)"
+        }
+        let ports = ["22", "80", "443"]
+        let found = await withTaskGroup(of: (String, [String]).self, returning: [(String, [String])].self) { group in
+            for t in targets {
+                group.addTask {
+                    let host = dotted(t)
+                    var open: [String] = []
+                    for pt in ports {
+                        if await self.tcpConnect(host: host, port: pt, timeout: 0.8).hasPrefix("OPEN") {
+                            open.append(pt)
+                        }
+                    }
+                    return (host, open)
+                }
+            }
+            var out: [(String, [String])] = []
+            for await (host, open) in group where !open.isEmpty { out.append((host, open)) }
+            return out
+        }
+        if found.isEmpty { return "No live hosts found on \(dotted(network))/24." }
+        let lines = found.sorted { $0.0 < $1.0 }
+            .map { "\($0.0): \($0.1.joined(separator: ","))" }
+        return "LIVE HOSTS on \(dotted(network))/24:\n" + lines.joined(separator: "\n")
     }
 }
