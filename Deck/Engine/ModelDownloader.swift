@@ -9,11 +9,11 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
         case idle, downloading, done, failed(String)
     }
 
-    /// Default brain: uncensored Huihui-NeoHorse 4B abliterated, Q4_K (~2.5GB).
-    /// The smarter deck brain: won the tool-use head-to-head vs the 1.7B.
+    /// Default brain: uncensored Huihui Qwen3.5 4B abliterated, Q4_K_M (~2.5GB).
+    /// One generation newer than the NeoHorse brain it replaces.
     /// Editable in Settings at runtime.
     static let defaultModelURL =
-        "https://huggingface.co/huihui-ai/Huihui-NeoHorse-1-4B-abliterated-GGUF/resolve/main/Huihui-NeoHorse-1-4B-abliterated-Q4_K.gguf"
+        "https://huggingface.co/interimlabs/InterimLabs-Huihui-Qwen3.5-4B-abliterated-GGUF-Q4_K_M/resolve/main/model.gguf"
 
     @Published var state: State = .idle
     @Published var progress: Double = 0
@@ -23,10 +23,15 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
     private var session: URLSession?
     private var task: URLSessionDownloadTask?
     private var resumeData: Data?
+    private let filename: String
+
+    init(filename: String = "models/brain-qwen35-4b.gguf") {
+        self.filename = filename
+    }
 
     var modelURL: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("models/brain-4b.gguf")
+            .appendingPathComponent(filename)
     }
 
     var modelExists: Bool {
@@ -90,9 +95,12 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
                     try FileManager.default.removeItem(at: dest)
                 }
                 try FileManager.default.moveItem(at: location, to: dest)
-                // Drop the legacy 1.7B brain if present (frees ~1.2GB).
-                let legacy = dest.deletingLastPathComponent().appendingPathComponent("brain.gguf")
-                try? FileManager.default.removeItem(at: legacy)
+                // Drop legacy brains after a successful switch (frees ~1.2GB + ~2.5GB):
+                // the old 1.7B brain.gguf and the NeoHorse brain-4b.gguf this model replaces.
+                let dir = dest.deletingLastPathComponent()
+                for legacyName in ["brain.gguf", "brain-4b.gguf"] {
+                    try? FileManager.default.removeItem(at: dir.appendingPathComponent(legacyName))
+                }
                 self.resumeData = nil
                 self.state = .done
                 self.progress = 1

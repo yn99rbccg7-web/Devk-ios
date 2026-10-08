@@ -4,6 +4,8 @@ struct ContentView: View {
     @EnvironmentObject var agent: AgentLoop
     @StateObject private var downloader = ModelDownloader()
     @State private var modelURLString = ModelDownloader.defaultModelURL
+    @StateObject private var visionModelDl = ModelDownloader(filename: "models/vision-0.8b.gguf")
+    @StateObject private var visionMmprojDl = ModelDownloader(filename: "models/vision-0.8b.mmproj.gguf")
     @State private var input = ""
     @State private var showSettings = false
 
@@ -78,8 +80,23 @@ struct ContentView: View {
                 NavigationStack {
                     Form {
                         Section("Brain") {
-                            Text("Qwen3 1.7B (uncensored) · on-device · offline")
+                            Text("Qwen3.5 4B abliterated · on-device · offline")
                                 .font(.caption)
+                        }
+                        Section("Vision") {
+                            if visionReady {
+                                Text("MiniCPM-V 0.8B abliterated · on-device · on-demand")
+                                    .font(.caption)
+                            } else {
+                                Text("Lets Deck actually see screenshots (~1.15 GB total, Wi-Fi).")
+                                    .font(.caption)
+                                visionDlRow(title: "Vision model (~0.42 GB)",
+                                            dl: visionModelDl,
+                                            urlString: VisionEngine.modelURLString)
+                                visionDlRow(title: "Vision projector (~0.73 GB)",
+                                            dl: visionMmprojDl,
+                                            urlString: VisionEngine.mmprojURLString)
+                            }
                         }
                         Section {
                             Button("Clear chat", role: .destructive) {
@@ -113,6 +130,35 @@ struct ContentView: View {
                 .font(m.isToolStatus ? .caption : .body)
             if m.role != .user { Spacer(minLength: 40) }
         }
+    }
+
+    private var visionReady: Bool {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return FileManager.default.fileExists(
+            atPath: docs.appendingPathComponent("models/vision-0.8b.gguf").path)
+            && FileManager.default.fileExists(
+                atPath: docs.appendingPathComponent("models/vision-0.8b.mmproj.gguf").path)
+    }
+
+    @ViewBuilder
+    private func visionDlRow(title: String, dl: ModelDownloader, urlString: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.caption)
+            if dl.state == .downloading || dl.progress > 0 {
+                ProgressView(value: dl.progress)
+                Text(String(format: "%.0f / %.0f MB", dl.downloadedMB, dl.totalMB))
+                    .font(.caption2).foregroundColor(.secondary)
+            }
+            if case .failed(let msg) = dl.state {
+                Text(msg).foregroundColor(.red).font(.caption2)
+            }
+            Button(dl.state == .downloading ? "Downloading…" : "Download") {
+                dl.start(urlString: urlString)
+            }
+            .buttonStyle(.bordered)
+            .disabled(dl.state == .downloading || dl.state == .done)
+        }
+        .padding(.vertical, 4)
     }
 
     // MARK: - First-launch model download
