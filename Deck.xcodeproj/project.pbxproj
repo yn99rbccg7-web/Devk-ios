@@ -53,6 +53,7 @@
 		SK1LL500000000000000003 = {isa = PBXFileReference; lastKnownFileType = text.json; path = skills2.json; sourceTree = "<group>"; };
 		BK1LL000000000000000001 = {isa = PBXFileReference; lastKnownFileType = text.json; path = book1.json; sourceTree = "<group>"; };
 		BK1LL000000000000000003 = {isa = PBXFileReference; lastKnownFileType = text.json; path = book2.json; sourceTree = "<group>"; };
+		EN7LL000000000000000001 = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Deck.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +112,7 @@
 				SK1LL500000000000000003,
 							BK1LL000000000000000001,
 				BK1LL000000000000000003,
+				EN7LL000000000000000001,
 );
 			path = Deck;
 			sourceTree = "<group>";
@@ -370,6 +372,7 @@
 		A1B2C3D4E5F60718293A4B11 = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Deck/Deck.entitlements;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -394,6 +397,7 @@
 		A1B2C3D4E5F60718293A4B12 = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Deck/Deck.entitlements;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

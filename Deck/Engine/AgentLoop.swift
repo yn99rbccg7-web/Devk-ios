@@ -60,6 +60,8 @@ Tools:
 - social_search {"platform": "reddit|github|v2ex|rss", "query": "..."} — read/search
   the no-login internet: reddit search, github repos, v2ex hot topics, any rss feed
   (query = feed URL). Read-only.
+- web_search {"query": "..."} — general web search (keyless DDG HTML). Use for the open
+  web beyond Reddit/GitHub/V2EX/RSS. Read-only.
 
 SKILLS (38 playbooks from mattpocock/skills, bundled offline — invoke them yourself):
 - list_skills {} — the catalog with trigger descriptions.
@@ -248,10 +250,49 @@ final class AgentLoop: ObservableObject {
 
     private struct ParsedAction { let name: String; let args: [String: String] }
 
+    /// Strip thinking traces so reasoning can't trigger phantom tool calls.
+    private func stripThink(from text: String) -> String {
+        text.replacingOccurrences(of: "<think>.*?</think>", with: "",
+                                  options: [.regularExpression, .dotMatchesLineSeparators])
+    }
+
+    /// First capture group of a regex, or nil.
+    private func firstCapture(of pattern: String, in text: String) -> String? {
+        guard let re = try? NSRegularExpression(pattern: pattern,
+                                                options: [.dotMatchesLineSeparators]),
+              let m = re.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              m.numberOfRanges > 1,
+              let r = Range(m.range(at: 1), in: text) else { return nil }
+        return String(text[r])
+    }
+
+    /// Accept {"name":…, "arguments":{…}} / {"tool":…, "args":{…}} shapes.
+    private func actionFromJSON(_ json: String) -> ParsedAction? {
+        guard let data = json.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return nil
+        }
+        let rawName = (obj["name"] as? String) ?? (obj["tool"] as? String) ?? ""
+        let name = rawName.trimmingCharacters(in: .whitespaces).lowercased()
+        guard DeckTools.knownTools.contains(name) else { return nil }
+        let argObj = (obj["arguments"] as? [String: Any])
+            ?? (obj["parameters"] as? [String: Any])
+            ?? (obj["args"] as? [String: Any]) ?? [:]
+        var args: [String: String] = [:]
+        for (k, v) in argObj { args[k] = "\(v)" }
+        return ParsedAction(name: name, args: args)
+    }
+
     private func parseAction(from text: String) -> ParsedAction? {
-        // Strip Qwen3 thinking traces so reasoning can't trigger phantom tool calls.
-        let noThink = text.replacingOccurrences(of: "<think>.*?</think>", with: "",
-                                                options: [.regularExpression, .dotMatchesLineSeparators])
+        let noThink = stripThink(from: text)
+        // 1. Native <tool_call> JSON blocks (Qwen3/Hermes template style) —
+        // abliterated models sometimes emit these instead of ACTION:/ARGS:.
+        if let tc = firstCapture(of: "<tool_call>(.*?)</tool_call>", in: noThink),
+           let a = actionFromJSON(tc) { return a }
+        // 2. Fenced ```json blocks carrying a tool call.
+        if let fence = firstCapture(of: "```(?:json)?\\s*(\\{.*?\\})\\s*```", in: noThink),
+           let a = actionFromJSON(fence) { return a }
+        // 3. ACTION:/ARGS: convention.
         let lines = noThink.components(separatedBy: .newlines)
         var name: String?
         var argsJSON = ""
@@ -279,9 +320,8 @@ final class AgentLoop: ObservableObject {
     }
 
     private func cleanFinal(_ text: String) -> String {
-        // Strip Qwen3 <think> traces and THOUGHT/ACTION scaffolding if leaked.
-        let noThink = text.replacingOccurrences(of: "<think>.*?</think>", with: "",
-                                                options: [.regularExpression, .dotMatchesLineSeparators])
+        // Strip thinking traces and THOUGHT/ACTION scaffolding if leaked.
+        let noThink = stripThink(from: text)
         let lines = noThink.components(separatedBy: .newlines).filter { line in
             let t = line.trimmingCharacters(in: .whitespaces).uppercased()
             return !t.hasPrefix("THOUGHT:") && !t.hasPrefix("ACTION:") && !t.hasPrefix("ARGS:")

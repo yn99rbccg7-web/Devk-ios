@@ -27,7 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
-        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info", "social_search", "list_skills", "use_skill", "book_search",
+        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info", "social_search", "web_search", "list_skills", "use_skill", "book_search",
     ]
 
     private let store = MemoryStore.shared
@@ -170,6 +170,9 @@ final class DeckTools: Sendable {
 
         case "social_search":
             return await socialSearch(platform: args["platform"] ?? "", query: args["query"] ?? "")
+
+        case "web_search":
+            return await webSearch(query: args["query"] ?? "")
 
         case "list_skills":
             return listSkills()
@@ -1020,5 +1023,67 @@ final class DeckTools: Sendable {
         }
         if hits.isEmpty { return "No matches for \(q)." }
         return String(hits.joined(separator: "\n\n").prefix(6000))
+    }
+
+    // MARK: - General web search (DuckDuckGo HTML — keyless, no account, no API)
+
+    /// Keyless general web search via the DDG HTML endpoint. Fills the gap between
+    /// social_search (Reddit/GitHub/V2EX/RSS) and http_fetch (needs an exact URL).
+    private func webSearch(query: String) async -> String {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return "Empty query." }
+        guard var comps = URLComponents(string: "https://html.duckduckgo.com/html/") else {
+            return "Bad URL."
+        }
+        comps.queryItems = [URLQueryItem(name: "q", value: q)]
+        guard let url = comps.url else { return "Bad query." }
+        var req = URLRequest(url: url, timeoutInterval: 25)
+        req.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+                     forHTTPHeaderField: "User-Agent")
+        guard let (data, _) = try? await URLSession.shared.data(for: req),
+              let html = String(data: data, encoding: .utf8) else {
+            return "Web search failed (network error or blocked)."
+        }
+        let ns = html as NSString
+        let full = NSRange(location: 0, length: ns.length)
+        guard let linkRe = try? NSRegularExpression(
+                pattern: "<a[^>]*class=\"result__a\"[^>]*href=\"([^\"]+)\"[^>]*>(.*?)</a>",
+                options: [.dotMatchesLineSeparators, .caseInsensitive]),
+              let snipRe = try? NSRegularExpression(
+                pattern: "<a[^>]*class=\"result__snippet\"[^>]*>(.*?)</a>",
+                options: [.dotMatchesLineSeparators, .caseInsensitive]) else {
+            return "Search parser unavailable."
+        }
+        let links = linkRe.matches(in: html, range: full)
+        let snips = snipRe.matches(in: html, range: full)
+        func stripTags(_ s: String) -> String {
+            s.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+             .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        var out: [String] = []
+        for (i, m) in links.prefix(8).enumerated() {
+            guard m.numberOfRanges > 2,
+                  let hr = Range(m.range(at: 1), in: html),
+                  let tr = Range(m.range(at: 2), in: html) else { continue }
+            var href = String(html[hr])
+            // Unwrap DDG's redirect: //duckduckgo.com/l/?uddg=<encoded-url>
+            let abs = href.hasPrefix("//") ? "https:" + href : href
+            if let u = URL(string: abs),
+               let c2 = URLComponents(url: u, resolvingAgainstBaseURL: false),
+               let uddg = c2.queryItems?.first(where: { $0.name == "uddg" })?.value,
+               let decoded = uddg.removingPercentEncoding, !decoded.isEmpty {
+                href = decoded
+            }
+            let title = stripTags(String(html[tr]))
+            var snippet = ""
+            if i < snips.count, snips[i].numberOfRanges > 1,
+               let sr = Range(snips[i].range(at: 1), in: html) {
+                snippet = stripTags(String(html[sr]))
+            }
+            out.append("\(i + 1). \(title)\n   \(href)"
+                       + (snippet.isEmpty ? "" : "\n   \(snippet.prefix(220))"))
+        }
+        if out.isEmpty { return "No results for \(q)." }
+        return out.joined(separator: "\n\n")
     }
 }

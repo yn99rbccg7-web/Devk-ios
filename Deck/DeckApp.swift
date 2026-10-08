@@ -19,7 +19,15 @@ struct DeckApp: App {
                     if newPhase == .active {
                         ScreenMonitor.shared.checkOnForeground()
                         LiveDeck.shared.ensureRunning()
+                    } else if newPhase == .background {
+                        // Drop the 2.5GB resident model the moment we're backgrounded:
+                        // jetsam kills resident giants first. Lazy-reloads on next turn.
+                        Task { await LlamaEngine.shared.unload() }
                     }
+                }
+                .onReceive(NotificationCenter.default.publisher(
+                    for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
+                    Task { await LlamaEngine.shared.unload() }
                 }
         }
     }
