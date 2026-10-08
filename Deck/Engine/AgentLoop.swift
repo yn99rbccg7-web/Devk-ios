@@ -98,6 +98,8 @@ a fetched writeup, or a CVE you can cite. Unknown = RESEARCH with concrete next 
 - open_url {"url": "https://..."} — open a link or app URL in another app
 
 Keep THOUGHT short. Chain tools when needed. Confirm destructive actions in your final answer.
+You have up to 30 steps per turn. If a job needs more, the turn pauses and the user can say
+"continue" to resume — a recap of your progress carries over, so plan in resumable chunks.
 """
 
 /// The agentic loop: prompt -> model -> parse ACTION -> run tool -> repeat.
@@ -109,7 +111,9 @@ final class AgentLoop: ObservableObject {
 
     private let engine = LlamaEngine.shared
     private let tools = DeckTools()
-    private let maxSteps = 8
+    private let maxSteps = 30
+    /// Recap of a turn that hit the step cap, so "continue" resumes with context.
+    private var pendingRecap: String?
 
     func send(_ text: String) async {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
@@ -145,9 +149,19 @@ final class AgentLoop: ObservableObject {
 
         let screenCtx = ScreenMemory.shared.contextBlock()
         if !screenCtx.isEmpty { transcript = screenCtx + transcript }
+        // "continue" resumes a capped turn: carry its recap forward.
+        if text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "continue",
+           let recap = pendingRecap {
+            transcript = "[Continuing the previous turn. Recap of what was already done:]\n"
+                + recap + "\n" + transcript
+            pendingRecap = nil
+        }
 
         var step = 0
         var turnText = ""
+        var finishedNaturally = false
+        var doneSteps: [String] = []
+        var lastObservation = ""
         while step < maxSteps {
             step += 1
             let prompt = LlamaEngine.qwen3Chat(system: systemPrompt, transcript: transcript)
@@ -161,6 +175,7 @@ final class AgentLoop: ObservableObject {
             }
 
             if let action = parseAction(from: raw) {
+                doneSteps.append(action.name)
                 let status = ChatMessage(role: .system, text: "⚙︎ \(action.name)", isToolStatus: true)
                 messages.append(status)
                 let observation: String
@@ -169,6 +184,7 @@ final class AgentLoop: ObservableObject {
                 } catch {
                     observation = "TOOL ERROR: \(error.localizedDescription)"
                 }
+                lastObservation = observation
                 if let idx = messages.lastIndex(where: { $0.id == status.id }) {
                     messages.remove(at: idx)
                 }
@@ -179,8 +195,18 @@ final class AgentLoop: ObservableObject {
             } else {
                 replaceStreaming(with: cleanFinal(raw))
                 transcript += LlamaEngine.assistantTurn(raw)
+                finishedNaturally = true
                 break
             }
+        }
+        // Cap hit: don't silently truncate — park a recap and let the user lift it.
+        if !finishedNaturally {
+            pendingRecap = "Original request: \(text)\n"
+                + "Steps already done (\(doneSteps.count)): \(doneSteps.joined(separator: ", "))\n"
+                + "Last observation: \(lastObservation.prefix(600))"
+            let notice = "⏸ Hit the \(maxSteps)-step cap with the plan unfinished "
+                + "(\(doneSteps.count) steps done). Say \"continue\" and I'll pick up where I left off."
+            messages.append(ChatMessage(role: .assistant, text: notice))
         }
         ScreenMemory.shared.pruneAfterTurn(recentText: transcript)
         let snippet = messages.last(where: { $0.role == .assistant })?.text ?? ""
