@@ -28,7 +28,7 @@ actor LlamaEngine {
 
     var modelPath: String {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("models/brain.gguf").path
+            .appendingPathComponent("models/brain-4b.gguf").path
     }
 
     var modelExists: Bool {
@@ -36,7 +36,8 @@ actor LlamaEngine {
     }
 
     /// Load the GGUF model. Call once; subsequent calls are no-ops.
-    func load(nCtx: Int32 = 4096) throws {
+    /// 2048 ctx keeps the 4B brain's KV cache (~150MB) clear of the jetsam line on 6GB iPhones.
+    func load(nCtx: Int32 = 2048) throws {
         if isLoaded { return }
         llama_backend_init()
 

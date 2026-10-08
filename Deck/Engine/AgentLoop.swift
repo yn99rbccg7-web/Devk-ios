@@ -32,6 +32,9 @@ Tools:
 - list_tasks {} — list open tasks
 - complete_task {"id": "3"} — mark a task done
 - http_fetch {"url": "https://..."} — fetch a web page as text
+- tcp_connect {"host": "1.2.3.4", "port": "22", "timeout": "5"} — test if a TCP port is open
+- dns_lookup {"host": "example.com"} — resolve a hostname to IPs
+- port_scan {"host": "1.2.3.4", "ports": "22,80,443", "timeout": "1.5"} — connect-scan ports (no raw sockets on iOS)
 - get_date {} — current date/time
 - notify {"title": "t", "body": "b"} — send the user a notification
 - open_url {"url": "https://..."} — open a link or app URL in another app

@@ -1,4 +1,5 @@
 import Foundation
+import Network
 import UIKit
 import UserNotifications
 
@@ -21,6 +22,7 @@ final class DeckTools: Sendable {
         "remember", "recall",
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
+        "tcp_connect", "dns_lookup", "port_scan",
     ]
 
     private let store = MemoryStore.shared
@@ -127,8 +129,114 @@ final class DeckTools: Sendable {
             await MainActor.run { UIApplication.shared.open(url) }
             return "Opened."
 
+        case "tcp_connect":
+            return await tcpConnect(host: args["host"] ?? "",
+                                    port: args["port"] ?? "",
+                                    timeout: Double(args["timeout"] ?? "") ?? 5)
+
+        case "dns_lookup":
+            return await dnsLookup(host: args["host"] ?? "")
+
+        case "port_scan":
+            return await portScan(host: args["host"] ?? "",
+                                  ports: args["ports"] ?? "21,22,23,25,53,80,110,143,443,445,993,995,3306,3389,5900,8080,8443",
+                                  timeout: Double(args["timeout"] ?? "") ?? 1.5)
+
         default:
             throw ToolError.io("Unknown tool: \(name)")
         }
+    }
+
+    // MARK: - Network recon (red-team)
+
+    /// Single-resume guard for NWConnection callbacks (Swift 6-clean).
+    private final class FinishBox: @unchecked Sendable {
+        private let lock = NSLock()
+        private var done = false
+        let cont: CheckedContinuation<String, Never>
+        let conn: NWConnection
+        init(_ cont: CheckedContinuation<String, Never>, _ conn: NWConnection) {
+            self.cont = cont
+            self.conn = conn
+        }
+        func finish(_ s: String) {
+            lock.lock()
+            defer { lock.unlock() }
+            guard !done else { return }
+            done = true
+            conn.cancel()
+            cont.resume(returning: s)
+        }
+    }
+
+    /// Raw TCP connect test. Real open/closed/timeout signal; raw sockets are blocked by the iOS sandbox.
+    private func tcpConnect(host: String, port: String, timeout: Double) async -> String {
+        guard let p = UInt16(port), !host.isEmpty else { return "Bad host/port." }
+        let conn = NWConnection(host: NWEndpoint.Host(host),
+                                port: NWEndpoint.Port(rawValue: p)!,
+                                using: .tcp)
+        return await withCheckedContinuation { cont in
+            let box = FinishBox(cont, conn)
+            conn.stateUpdateHandler = { state in
+                switch state {
+                case .ready: box.finish("OPEN \(host):\(p)")
+                case .failed(let e): box.finish("CLOSED \(host):\(p) (\(e))")
+                case .cancelled: box.finish("CANCELLED \(host):\(p)")
+                default: break
+                }
+            }
+            conn.start(queue: .global())
+            DispatchQueue.global().asyncAfter(deadline: .now() + timeout) {
+                box.finish("TIMEOUT \(host):\(p) after \(timeout)s")
+            }
+        }
+    }
+
+    /// DNS A/AAAA resolution via getaddrinfo.
+    private func dnsLookup(host: String) async -> String {
+        guard !host.isEmpty else { return "Bad host." }
+        return await withCheckedContinuation { cont in
+            DispatchQueue.global().async {
+                var hints = addrinfo()
+                hints.ai_socktype = SOCK_STREAM
+                var res: UnsafeMutablePointer<addrinfo>?
+                let err = getaddrinfo(host, nil, &hints, &res)
+                defer { if let r = res { freeaddrinfo(r) } }
+                guard err == 0, res != nil else {
+                    cont.resume(returning: "DNS failed: \(String(cString: gai_strerror(err)))")
+                    return
+                }
+                var out = Set<String>()
+                var p = res
+                while let cur = p {
+                    var buf = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                    if getnameinfo(cur.pointee.ai_addr, cur.pointee.ai_addrlen,
+                                   &buf, socklen_t(NI_MAXHOST), nil, 0, NI_NUMERICHOST) == 0 {
+                        out.insert(String(cString: buf))
+                    }
+                    p = cur.pointee.ai_next
+                }
+                cont.resume(returning: out.isEmpty ? "(no addresses)" : out.sorted().joined(separator: "\n"))
+            }
+        }
+    }
+
+    /// Connect-based port scan (SYN/raw scan is blocked by the iOS sandbox).
+    private func portScan(host: String, ports: String, timeout: Double) async -> String {
+        let list = ports.split(separator: ",")
+            .compactMap { UInt16($0.trimmingCharacters(in: .whitespaces)) }
+        guard !host.isEmpty, !list.isEmpty else { return "Bad host/ports." }
+        let targets = Array(list.prefix(100))
+        let open = await withTaskGroup(of: (UInt16, Bool).self, returning: [UInt16].self) { group in
+            for p in targets {
+                group.addTask { (p, await self.tcpConnect(host: host, port: String(p), timeout: timeout).hasPrefix("OPEN")) }
+            }
+            var found: [UInt16] = []
+            for await (p, isOpen) in group where isOpen { found.append(p) }
+            return found
+        }
+        let s = open.sorted()
+        return s.isEmpty ? "No open ports on \(host)."
+            : "OPEN on \(host): \(s.map(String.init).joined(separator: ", "))"
     }
 }

@@ -9,10 +9,11 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
         case idle, downloading, done, failed(String)
     }
 
-    /// Default brain: uncensored Qwen3 1.7B abliterated, Q4_K_M (~1.2GB).
+    /// Default brain: uncensored Huihui-NeoHorse 4B abliterated, Q4_K (~2.5GB).
+    /// The smarter deck brain: won the tool-use head-to-head vs the 1.7B.
     /// Editable in Settings at runtime.
     static let defaultModelURL =
-        "https://huggingface.co/mradermacher/Qwen3-1.7B-abliterated-GGUF/resolve/main/Qwen3-1.7B-abliterated.Q4_K_M.gguf"
+        "https://huggingface.co/huihui-ai/Huihui-NeoHorse-1-4B-abliterated-GGUF/resolve/main/Huihui-NeoHorse-1-4B-abliterated-Q4_K.gguf"
 
     @Published var state: State = .idle
     @Published var progress: Double = 0
@@ -25,7 +26,7 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
 
     var modelURL: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("models/brain.gguf")
+            .appendingPathComponent("models/brain-4b.gguf")
     }
 
     var modelExists: Bool {
@@ -89,6 +90,9 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
                     try FileManager.default.removeItem(at: dest)
                 }
                 try FileManager.default.moveItem(at: location, to: dest)
+                // Drop the legacy 1.7B brain if present (frees ~1.2GB).
+                let legacy = dest.deletingLastPathComponent().appendingPathComponent("brain.gguf")
+                try? FileManager.default.removeItem(at: legacy)
                 self.resumeData = nil
                 self.state = .done
                 self.progress = 1
