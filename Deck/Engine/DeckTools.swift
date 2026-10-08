@@ -27,7 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
-        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info", "social_search", "web_search", "list_skills", "use_skill", "book_search",
+        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info", "social_search", "web_search", "mcp", "see_image", "list_skills", "use_skill", "book_search",
     ]
 
     private let store = MemoryStore.shared
@@ -173,6 +173,15 @@ final class DeckTools: Sendable {
 
         case "web_search":
             return await webSearch(query: args["query"] ?? "")
+
+        case "mcp":
+            return await mcpCall(server: args["server"] ?? "",
+                                 op: args["op"] ?? "list",
+                                 tool: args["tool"] ?? "",
+                                 arguments: args["arguments"] ?? "")
+
+        case "see_image":
+            return await seeImage(path: args["path"] ?? "", prompt: args["prompt"] ?? "")
 
         case "list_skills":
             return listSkills()
@@ -677,7 +686,10 @@ final class DeckTools: Sendable {
             h += 1
         }
         @Sendable func dotted(_ v: UInt32) -> String {
-            "\((v >> 24) & 0xFF).\((v >> 16) & 0xFF).\((v >> 8) & 0xFF).\(v & 0xFF)"
+            // s_addr is network byte order; convert to host order before shifting,
+            // otherwise octets come out reversed on little-endian (all iPhones).
+            let h = UInt32(bigEndian: v)
+            "\((h >> 24) & 0xFF).\((h >> 16) & 0xFF).\((h >> 8) & 0xFF).\(h & 0xFF)"
         }
         let ports = ["22", "80", "443"]
         let found = await withTaskGroup(of: (String, [String]).self, returning: [(String, [String])].self) { group in
@@ -750,7 +762,7 @@ final class DeckTools: Sendable {
         guard let magic = u32(0) else { return "Too small." }
 
         // FAT binary: list contained architectures.
-        if magic == 0xcafebabe {
+        if u32be(0) == 0xcafebabe {
             guard let n = u32be(4) else { return "Truncated fat header." }
             r.append("fat binary, \(n) architectures:")
             for i in 0..<min(n, 8) {
@@ -1085,5 +1097,138 @@ final class DeckTools: Sendable {
         }
         if out.isEmpty { return "No results for \(q)." }
         return out.joined(separator: "\n\n")
+    }
+
+    // MARK: - MCP client (hand-rolled JSON-RPC 2.0 over Streamable HTTP)
+
+    /// Minimal MCP client: talks to any Streamable-HTTP MCP server.
+    /// op="list" → tool inventory; op="call" → invoke a tool.
+    /// No subprocesses (sandbox), so stdio servers are out of reach by design.
+    /// Pure URLSession + JSONSerialization: no SDK, no license risk.
+    private func mcpCall(server: String, op: String, tool: String,
+                         arguments: String) async -> String {
+        let base = server.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !base.isEmpty, let url = URL(string: base),
+              url.scheme == "https" || url.scheme == "http" else {
+            return "MCP error: bad server URL (need http(s)://…)."
+        }
+        // Best-effort handshake; many servers answer calls without it.
+        _ = await mcpPost(url: url, method: "initialize", params: [
+            "protocolVersion": "2024-11-05",
+            "capabilities": [:] as [String: Any],
+            "clientInfo": ["name": "Deck", "version": "1.0"],
+        ])
+        _ = await mcpPost(url: url, method: "notifications/initialized",
+                          params: [:], notify: true)
+
+        if op.lowercased() == "call" {
+            guard !tool.isEmpty else { return "MCP error: op=call needs a tool name." }
+            var argObj: [String: Any] = [:]
+            let tm = arguments.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !tm.isEmpty {
+                guard let data = tm.data(using: .utf8),
+                      let obj = try? JSONSerialization.jsonObject(with: data)
+                        as? [String: Any] else {
+                    return "MCP error: arguments is not a JSON object."
+                }
+                argObj = obj
+            }
+            let res = await mcpPost(url: url, method: "tools/call",
+                                    params: ["name": tool, "arguments": argObj])
+            return mcpText(from: res, cap: 6000)
+        }
+
+        let res = await mcpPost(url: url, method: "tools/list", params: [:])
+        guard let result = res["result"] as? [String: Any],
+              let tools = result["tools"] as? [[String: Any]] else {
+            return "MCP error: no tools in response."
+        }
+        if tools.isEmpty { return "(server exposes no tools)" }
+        let lines = tools.prefix(20).map { item -> String in
+            let n = item["name"] as? String ?? "(unnamed)"
+            let d = (item["description"] as? String ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return d.isEmpty ? "- \(n)" : "- \(n): \(String(d.prefix(160)))"
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    /// One JSON-RPC POST. Returns the parsed envelope (or [:] on any failure).
+    /// Accepts plain JSON and SSE-wrapped ("data: …") bodies.
+    private func mcpPost(url: URL, method: String, params: [String: Any],
+                         notify: Bool = false) async -> [String: Any] {
+        var payload: [String: Any] = ["jsonrpc": "2.0", "method": method,
+                                      "params": params]
+        if !notify { payload["id"] = 1 }
+        guard let body = try? JSONSerialization.data(withJSONObject: payload) else {
+            return [:]
+        }
+        var req = URLRequest(url: url, timeoutInterval: 25)
+        req.httpMethod = "POST"
+        req.httpBody = body
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("application/json, text/event-stream", forHTTPHeaderField: "Accept")
+        guard let (data, _) = try? await URLSession.shared.data(for: req),
+              !data.isEmpty else { return [:] }
+        return mcpParse(data: data)
+    }
+
+    /// Extract the JSON-RPC envelope from a plain-JSON or SSE body.
+    private func mcpParse(data: Data) -> [String: Any] {
+        if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            return obj
+        }
+        guard let text = String(data: data, encoding: .utf8) else { return [:] }
+        var last: [String: Any] = [:]
+        for line in text.components(separatedBy: .newlines) {
+            let tm = line.trimmingCharacters(in: .whitespaces)
+            guard tm.hasPrefix("data:") else { continue }
+            let payload = tm.dropFirst(5).trimmingCharacters(in: .whitespaces)
+            guard !payload.isEmpty, payload != "[DONE]",
+                  let d = payload.data(using: .utf8),
+                  let obj = try? JSONSerialization.jsonObject(with: d)
+                    as? [String: Any] else { continue }
+            last = obj
+        }
+        return last
+    }
+
+    /// Render a tools/call result's content blocks as text, capped.
+    private func mcpText(from envelope: [String: Any], cap: Int) -> String {
+        if let err = envelope["error"] as? [String: Any] {
+            let msg = err["message"] as? String ?? "unknown error"
+            return "MCP error: \(msg)"
+        }
+        guard let result = envelope["result"] as? [String: Any] else {
+            return "MCP error: empty result."
+        }
+        if let content = result["content"] as? [[String: Any]] {
+            let parts = content.compactMap { $0["text"] as? String }
+            let text = parts.joined(separator: "\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return text.isEmpty ? "(empty content)" : String(text.prefix(cap))
+        }
+        if let data = try? JSONSerialization.data(withJSONObject: result),
+           let s = String(data: data, encoding: .utf8) {
+            return String(s.prefix(cap))
+        }
+        return "(unreadable result)"
+    }
+
+    // MARK: - Vision (on-demand, via VisionEngine)
+
+    /// Actually look at an image. path="latest" (or empty) = newest screenshot.
+    private func seeImage(path: String, prompt: String) async -> String {
+        let p = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        let target: String
+        if p.isEmpty || p.lowercased() == "latest" {
+            guard let url = ScreenMemory.shared.latestURL() else {
+                return "No screenshots captured yet."
+            }
+            target = url.path
+        } else {
+            target = p
+        }
+        return await VisionEngine.shared.describe(imagePath: target, prompt: prompt)
     }
 }
