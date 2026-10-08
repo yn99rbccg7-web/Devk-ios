@@ -28,6 +28,7 @@
 		SK1LL500000000000000004 = {isa = PBXBuildFile; fileRef = SK1LL500000000000000003; };
 		BK1LL000000000000000002 = {isa = PBXBuildFile; fileRef = BK1LL000000000000000001; };
 		BK1LL000000000000000004 = {isa = PBXBuildFile; fileRef = BK1LL000000000000000003; };
+		VS1LL000000000000000002 = {isa = PBXBuildFile; fileRef = VS1LL000000000000000001; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,6 +55,7 @@
 		BK1LL000000000000000001 = {isa = PBXFileReference; lastKnownFileType = text.json; path = book1.json; sourceTree = "<group>"; };
 		BK1LL000000000000000003 = {isa = PBXFileReference; lastKnownFileType = text.json; path = book2.json; sourceTree = "<group>"; };
 		EN7LL000000000000000001 = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Deck.entitlements; sourceTree = "<group>"; };
+		VS1LL000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionEngine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +115,7 @@
 							BK1LL000000000000000001,
 				BK1LL000000000000000003,
 				EN7LL000000000000000001,
+				VS1LL000000000000000001,
 );
 			path = Deck;
 			sourceTree = "<group>";
@@ -255,7 +258,8 @@
 				D3C1F00D0000000000000017,
 				D3C1F00D0000000000000018,
 				D3C1F00D000000000000001F,
-			);
+							VS1LL000000000000000002,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D3C1F00D000000000000000A = {
@@ -499,10 +503,12 @@
 /* Begin XCRemoteSwiftPackageReference section */
 		A1B2C3D4E5F60718293A4B13 = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/mattt/llama.swift";
+			repositoryURL = "https://github.com/Shalom-P/llama.swift";
+			// mtmd-enabled fork (LLAMA_BUILD_MTMD=ON) for on-device vision.
+			// Fallback if it rots: https://github.com/mattt/llama.swift
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.10549.0;
+				kind = exactVersion;
+				version = 2.8881.0-mtmd;
 			};
 		};
 		C17ADE100000000000000001 = {

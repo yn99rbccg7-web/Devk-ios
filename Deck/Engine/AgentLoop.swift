@@ -62,6 +62,11 @@ Tools:
   (query = feed URL). Read-only.
 - web_search {"query": "..."} — general web search (keyless DDG HTML). Use for the open
   web beyond Reddit/GitHub/V2EX/RSS. Read-only.
+- mcp {"server": "https://…/mcp", "op": "list|call", "tool": "…", "arguments": "{…}"}
+  — call tools on any Streamable-HTTP MCP server: list its inventory or invoke one.
+  Server URL required.
+- see_image {"path": "latest|/path/to.jpg", "prompt": "…"} — actually LOOK at an image
+  with the on-demand vision model (0.8B abliterated). "latest" = newest screenshot.
 
 SKILLS (38 playbooks from mattpocock/skills, bundled offline — invoke them yourself):
 - list_skills {} — the catalog with trigger descriptions.
