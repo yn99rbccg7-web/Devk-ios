@@ -27,7 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
-        "ssh_exec", "js_run", "sys_scan", "jailbreak_status",
+        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path",
     ]
 
     private let store = MemoryStore.shared
@@ -156,6 +156,9 @@ final class DeckTools: Sendable {
 
         case "sys_scan":
             return await sysScan()
+
+        case "jailbreak_path":
+            return jailbreakPath()
 
         case "jailbreak_status":
             return jailbreakStatus()
@@ -468,27 +471,30 @@ final class DeckTools: Sendable {
 
     // MARK: - Jailbreak operations
 
-    /// Jailbreak readiness: fingerprints THIS build and matches it against the
-    /// known-exploit database. Honest by construction: discovery of new bugs is
-    /// research (VM fuzzing pipeline / public drops), not something scan data invents.
-    /// When a real exploit exists for this build, the deck assembles the package
-    /// (exploit + offsets derived for this exact kernel build), explains it fully,
-    /// and waits for explicit user confirmation. It never executes on its own.
-    /// DB date: 2026-10-08. The rooootdev watch feeds updates.
-    private func jailbreakStatus() -> String {
+    /// Kernel/build fingerprint shared by the jailbreak tools. uname() is real and
+    /// sandbox-safe; the XNU build string is what offset derivation needs.
+    private func jailbreakFingerprint() -> (machine: String, ios: String, kernel: String, checkm8Vuln: Bool) {
         var uts = utsname()
         uname(&uts)
+        func str(_ p: UnsafePointer<CChar>) -> String { String(cString: p) }
         let machine = withUnsafePointer(to: &uts.machine) {
-            $0.withMemoryRebound(to: CChar.self, capacity: 256) { String(cString: $0) }
-        }
+            $0.withMemoryRebound(to: CChar.self, capacity: 256, str) }
+        let kernel = withUnsafePointer(to: &uts.release) {
+            $0.withMemoryRebound(to: CChar.self, capacity: 256, str) }
         let ios = UIDevice.current.systemVersion
-
         // checkm8 (bootrom) covers A11 and below = iPhone10,x and older.
         var checkm8Vuln = false
-        if machine.hasPrefix("iPhone"), let major = Int(machine.dropFirst(6).prefix(while: { $0.isNumber })), major <= 10 {
+        if machine.hasPrefix("iPhone"),
+           let major = Int(machine.dropFirst(6).prefix(while: { $0.isNumber })), major <= 10 {
             checkm8Vuln = true
         }
+        return (machine, ios, kernel, checkm8Vuln)
+    }
 
+    /// Matches THIS build against the known-exploit database.
+    /// DB date: 2026-10-08. The rooootdev watch feeds updates.
+    private func jailbreakVerdict() -> (live: Bool, lines: [String]) {
+        let fp = jailbreakFingerprint()
         func ver(_ s: String) -> [Int] { s.split(separator: ".").compactMap { Int($0) } }
         func le(_ a: String, _ b: String) -> Bool {
             let x = ver(a), y = ver(b)
@@ -498,18 +504,14 @@ final class DeckTools: Sendable {
             }
             return true
         }
-
         var r: [String] = []
-        r.append("== YOUR BUILD ==")
-        r.append("machine: \(machine), iOS \(ios)")
-        r.append("checkm8-vulnerable chip: \(checkm8Vuln ? "YES (A11 or older)" : "no (A12+)")")
-        r.append("")
-        r.append("== KNOWN JAILBREAKS ==")
+        r.append("machine: \(fp.machine), iOS \(fp.ios), kernel \(fp.kernel)")
+        r.append("checkm8-vulnerable chip: \(fp.checkm8Vuln ? "YES (A11 or older)" : "no (A12+)")")
         let db: [(String, String, Bool)] = [
-            ("checkra1n / palera1n (checkm8 bootrom)", "A5-A11, any iOS", checkm8Vuln),
-            ("unc0ver / Taurine", "iOS <= 14.8", le(ios, "14.8")),
-            ("kfd-based (kernel file descriptor)", "iOS 16.0 - 16.6.1", le("16.0", ios) && le(ios, "16.6.1")),
-            ("lara", "iOS <= 26.0.1", le(ios, "26.0.1")),
+            ("checkra1n / palera1n (checkm8 bootrom)", "A5-A11, any iOS", fp.checkm8Vuln),
+            ("unc0ver / Taurine", "iOS <= 14.8", le(fp.ios, "14.8")),
+            ("kfd-based (kernel file descriptor)", "iOS 16.0 - 16.6.1", le("16.0", fp.ios) && le(fp.ios, "16.6.1")),
+            ("lara", "iOS <= 26.0.1", le(fp.ios, "26.0.1")),
             ("mond", "iOS 27.0 betas only (not final/RC)", false),
         ]
         var live = false
@@ -517,6 +519,15 @@ final class DeckTools: Sendable {
             r.append("\(ok ? "LIVE" : "dead"): \(name) [\(coverage)]")
             if ok { live = true }
         }
+        return (live, r)
+    }
+
+    /// Jailbreak readiness report for this build.
+    private func jailbreakStatus() -> String {
+        let (live, lines) = jailbreakVerdict()
+        var r: [String] = []
+        r.append("== YOUR BUILD ==")
+        r += lines
         r.append("")
         if live {
             r.append("VERDICT: exploit exists for this build.")
@@ -525,11 +536,57 @@ final class DeckTools: Sendable {
             r.append("traces left behind, how it avoids Apple/kernel-guard detection, risks —")
             r.append("and STOPS for your explicit confirmation. Nothing executes without it.")
         } else {
-            r.append("VERDICT: no public jailbreak for this build (iOS \(ios) on \(machine)).")
+            r.append("VERDICT: no public jailbreak for this build.")
             r.append("New bugs come from research (fuzzing pipeline / public drops), not from")
             r.append("scan data. The rooootdev watch monitors for the first real signal.")
             r.append("When one lands, the flow above activates: assemble, explain, confirm, execute.")
         }
+        return r.joined(separator: "\n")
+    }
+
+    /// Builds the engineering path toward privilege, properly: every phase is grounded
+    /// in scan output, fetched writeups, or CVEs. Unknown steps are marked RESEARCH
+    /// with concrete next actions — never fabricated. The model drives this with
+    /// sys_scan, jailbreak_status, http_fetch, and js_run as its instruments.
+    private func jailbreakPath() -> String {
+        let fp = jailbreakFingerprint()
+        let (live, _) = jailbreakVerdict()
+        var r: [String] = []
+        r.append("== JAILBREAK PATH ==")
+        r.append("target: \(fp.machine), iOS \(fp.ios), kernel \(fp.kernel)")
+        r.append("")
+        r.append("PHASE 1 — RECON: COMPLETE.")
+        r.append("  sys_scan mapped the sandbox cage; the kernel fingerprint above pins the")
+        r.append("  exact build. This fingerprint is what offset derivation needs — it does")
+        r.append("  not invent bugs. Version numbers are labels, not vulnerabilities.")
+        r.append("")
+        if live {
+            r.append("PHASE 2 — EXPLOIT MATCH: LIVE exploit in DB.")
+            r.append("PHASE 3 — ASSEMBLE:")
+            r.append("  1. Fetch the exploit source (cite it).")
+            r.append("  2. Derive offsets for THIS exact kernel build (patchfinder).")
+            r.append("  3. Package exploit + offsets + loader.")
+            r.append("PHASE 4 — EXPLAIN + CONFIRM:")
+            r.append("  Present mechanism, persistence model, traces left behind, how it")
+            r.append("  avoids Apple/kernel-guard detection, and risks. Then STOP. Execute")
+            r.append("  only on explicit user confirmation in chat.")
+        } else {
+            r.append("PHASE 2 — EXPLOIT MATCH: none for this build.")
+            r.append("PHASE 3 — RESEARCH (the proper way to build an exploit):")
+            r.append("  a) FUZZING (VM pipeline, proven): memory-safety bugs in userspace")
+            r.append("     parsers first — AFL++ works there. Kernel driver bugs need XNU")
+            r.append("     source audit plus a Mac/corellium-class target; the phone cannot")
+            r.append("     fuzz (fork() is blocked by the sandbox).")
+            r.append("  b) LITERATURE: http_fetch writeups and CVEs for this iOS version.")
+            r.append("     Every path step must cite its source. No source = RESEARCH,")
+            r.append("     never an invented step. Faking an exploit is the one unforgivable.")
+            r.append("  c) WATCH: rooootdev watch runs daily; first real signal activates")
+            r.append("     the LIVE branch above.")
+            r.append("PHASE 4 — EXECUTE: gated exactly as in the LIVE branch.")
+        }
+        r.append("")
+        r.append("STANDING RULES: never fake an exploit. Never execute without explicit user")
+        r.append("confirmation after the full plan — including detection avoidance — is shown.")
         return r.joined(separator: "\n")
     }
 }

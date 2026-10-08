@@ -11,6 +11,7 @@ struct DeckApp: App {
                 .environmentObject(agent)
                 .onOpenURL { url in agent.handleURL(url) }
                 .onAppear {
+                    KeepAlive.shared.start()
                     LiveDeck.shared.ensureRunning()
                     ScreenMonitor.shared.checkOnForeground()
                 }

@@ -22,6 +22,7 @@
 		D3C1F00D0000000000000015 = {isa = PBXBuildFile; fileRef = D3C1F00D0000000000000004; };
 		D3C1F00D0000000000000016 = {isa = PBXBuildFile; fileRef = D3C1F00D0000000000000019; };
 		D3C1F00D0000000000000017 = {isa = PBXBuildFile; fileRef = D3C1F00D000000000000001A; };
+		D3C1F00D000000000000001F = {isa = PBXBuildFile; fileRef = D3C1F00D000000000000001E; };
 		D3C1F00D0000000000000018 = {isa = PBXBuildFile; fileRef = D3C1F00D000000000000001B; };
 /* End PBXBuildFile section */
 
@@ -42,6 +43,7 @@
 		D3C1F00D0000000000000005 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D3C1F00D0000000000000019 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDeck.swift; sourceTree = "<group>"; };
 		D3C1F00D000000000000001A = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenMonitor.swift; sourceTree = "<group>"; };
+		D3C1F00D000000000000001E = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepAlive.swift; sourceTree = "<group>"; };
 		D3C1F00D000000000000001B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenMemory.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -112,6 +114,7 @@
 				D3C1F00D0000000000000019,
 				D3C1F00D000000000000001A,
 				D3C1F00D000000000000001B,
+				D3C1F00D000000000000001E,
 			);
 			name = Engine;
 			path = Engine;
@@ -233,6 +236,7 @@
 				D3C1F00D0000000000000016,
 				D3C1F00D0000000000000017,
 				D3C1F00D0000000000000018,
+				D3C1F00D000000000000001F,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
