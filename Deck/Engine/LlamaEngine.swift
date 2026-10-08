@@ -28,7 +28,7 @@ actor LlamaEngine {
 
     var modelPath: String {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("models/brain-qwen35-4b.gguf").path
+            .appendingPathComponent("models/brain-4b.gguf").path
     }
 
     var modelExists: Bool {

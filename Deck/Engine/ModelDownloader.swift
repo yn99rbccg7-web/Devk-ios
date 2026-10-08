@@ -9,11 +9,12 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
         case idle, downloading, done, failed(String)
     }
 
-    /// Default brain: uncensored Huihui Qwen3.5 4B abliterated, Q4_K_M (~2.5GB).
-    /// One generation newer than the NeoHorse brain it replaces.
+    /// Default brain: uncensored Huihui-NeoHorse 4B abliterated, Q4_K (~2.5GB).
+    /// Won the tool-use head-to-head vs the 1.7B, and beat Qwen3.5-4B 9/10 to 7/10
+    /// on the eval battery (2026-10-08) — Qwen3.5 confabulates facts and arithmetic.
     /// Editable in Settings at runtime.
     static let defaultModelURL =
-        "https://huggingface.co/interimlabs/InterimLabs-Huihui-Qwen3.5-4B-abliterated-GGUF-Q4_K_M/resolve/main/model.gguf"
+        "https://huggingface.co/huihui-ai/Huihui-NeoHorse-1-4B-abliterated-GGUF/resolve/main/Huihui-NeoHorse-1-4B-abliterated-Q4_K.gguf"
 
     @Published var state: State = .idle
     @Published var progress: Double = 0
@@ -25,7 +26,7 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
     private var resumeData: Data?
     private let filename: String
 
-    init(filename: String = "models/brain-qwen35-4b.gguf") {
+    init(filename: String = "models/brain-4b.gguf") {
         self.filename = filename
     }
 
@@ -95,10 +96,10 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
                     try FileManager.default.removeItem(at: dest)
                 }
                 try FileManager.default.moveItem(at: location, to: dest)
-                // Drop legacy brains after a successful switch (frees ~1.2GB + ~2.5GB):
-                // the old 1.7B brain.gguf and the NeoHorse brain-4b.gguf this model replaces.
+                // Drop legacy brains (frees space): the old 1.7B brain.gguf and the
+                // Qwen3.5 brain-qwen35-4b.gguf (eval 2026-10-08: weaker than NeoHorse).
                 let dir = dest.deletingLastPathComponent()
-                for legacyName in ["brain.gguf", "brain-4b.gguf"] {
+                for legacyName in ["brain.gguf", "brain-qwen35-4b.gguf"] {
                     try? FileManager.default.removeItem(at: dir.appendingPathComponent(legacyName))
                 }
                 self.resumeData = nil

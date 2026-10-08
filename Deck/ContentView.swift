@@ -80,7 +80,7 @@ struct ContentView: View {
                 NavigationStack {
                     Form {
                         Section("Brain") {
-                            Text("Qwen3.5 4B abliterated · on-device · offline")
+                            Text("NeoHorse 4B abliterated · on-device · offline")
                                 .font(.caption)
                         }
                         Section("Vision") {
