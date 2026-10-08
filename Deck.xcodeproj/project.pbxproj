@@ -145,6 +145,8 @@
 			name = Deck;
 			packageProductDependencies = (
 				A1B2C3D4E5F60718293A4B14,
+				C17ADE100000000000000002,
+				C17ADE100000000000000004,
 			);
 			productName = Deck;
 			productReference = A1B2C3D4E5F60718293A4B09;
@@ -185,6 +187,8 @@
 			mainGroup = A1B2C3D4E5F60718293A4B02;
 			packageReferences = (
 				A1B2C3D4E5F60718293A4B13,
+				C17ADE100000000000000001,
+				C17ADE100000000000000003,
 			);
 			productRefGroup = A1B2C3D4E5F60718293A4B03;
 			projectDirPath = "";
@@ -477,6 +481,22 @@
 				minimumVersion = 2.10549.0;
 			};
 		};
+		C17ADE100000000000000001 = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/orlandos-nl/Citadel";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.12.1;
+			};
+		};
+		C17ADE100000000000000003 = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-crypto";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.12.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -484,6 +504,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A1B2C3D4E5F60718293A4B13;
 			productName = LlamaSwift;
+		};
+		C17ADE100000000000000002 = {
+			isa = XCSwiftPackageProductDependency;
+			package = C17ADE100000000000000001;
+			productName = Citadel;
+		};
+		C17ADE100000000000000004 = {
+			isa = XCSwiftPackageProductDependency;
+			package = C17ADE100000000000000003;
+			productName = Crypto;
 		};
 /* End XCSwiftPackageProductDependency section */
 

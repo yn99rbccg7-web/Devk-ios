@@ -35,6 +35,9 @@ Tools:
 - tcp_connect {"host": "1.2.3.4", "port": "22", "timeout": "5"} — test if a TCP port is open
 - dns_lookup {"host": "example.com"} — resolve a hostname to IPs
 - port_scan {"host": "1.2.3.4", "ports": "22,80,443", "timeout": "1.5"} — connect-scan ports (no raw sockets on iOS)
+- ssh_exec {"host": "1.2.3.4", "port": "22", "username": "root", "password": "…", "command": "uname -a"} — run a command on a remote server (or "privateKey": "<OpenSSH ed25519 key>")
+- js_run {"code": "1+1"} — run JavaScript in the built-in shell (state persists)
+- sys_scan {} — deep read-only scan: device, sandbox, filesystem, network, permissions
 - get_date {} — current date/time
 - notify {"title": "t", "body": "b"} — send the user a notification
 - open_url {"url": "https://..."} — open a link or app URL in another app

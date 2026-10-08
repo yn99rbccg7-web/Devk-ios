@@ -1,5 +1,9 @@
+import Citadel
+import Crypto
 import Foundation
+import JavaScriptCore
 import Network
+import Photos
 import UIKit
 import UserNotifications
 
@@ -23,6 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
+        "ssh_exec", "js_run", "sys_scan",
     ]
 
     private let store = MemoryStore.shared
@@ -137,6 +142,21 @@ final class DeckTools: Sendable {
         case "dns_lookup":
             return await dnsLookup(host: args["host"] ?? "")
 
+        case "ssh_exec":
+            return await sshExec(host: args["host"] ?? "",
+                                 port: Int(args["port"] ?? "") ?? 22,
+                                 username: args["username"] ?? "",
+                                 password: args["password"],
+                                 privateKey: args["privateKey"],
+                                 command: args["command"] ?? "",
+                                 timeout: Double(args["timeout"] ?? "") ?? 30)
+
+        case "js_run":
+            return jsRun(code: args["code"] ?? "")
+
+        case "sys_scan":
+            return await sysScan()
+
         case "port_scan":
             return await portScan(host: args["host"] ?? "",
                                   ports: args["ports"] ?? "21,22,23,25,53,80,110,143,443,445,993,995,3306,3389,5900,8080,8443",
@@ -146,6 +166,14 @@ final class DeckTools: Sendable {
             throw ToolError.io("Unknown tool: \(name)")
         }
     }
+
+    /// Persistent JavaScript shell (JavaScriptCore is built into iOS; state survives between calls).
+    private final class JSBox: @unchecked Sendable {
+        let lock = NSLock()
+        let context: JSContext
+        init() { context = JSContext()! }
+    }
+    private let jsBox = JSBox()
 
     // MARK: - Network recon (red-team)
 
@@ -238,5 +266,184 @@ final class DeckTools: Sendable {
         let s = open.sorted()
         return s.isEmpty ? "No open ports on \(host)."
             : "OPEN on \(host): \(s.map(String.init).joined(separator: ", "))"
+    }
+
+    // MARK: - SSH (Citadel, pure-Swift SSH)
+
+    /// Run a command on a remote server. Auth: password, or OpenSSH ed25519 private key string.
+    /// Host key is accepted on first connection (TOFU pinning is future work).
+    /// Credentials should live in the deck's memory store, not pasted into chat.
+    private func sshExec(host: String, port: Int, username: String, password: String?,
+                         privateKey: String?, command: String, timeout: Double) async -> String {
+        guard !host.isEmpty, !username.isEmpty, !command.isEmpty else {
+            return "Bad host/username/command."
+        }
+        let auth: @Sendable () -> SSHAuthenticationMethod = {
+            if let key = privateKey, !key.isEmpty,
+               let ed = try? Curve25519.Signing.PrivateKey(sshEd25519: key) {
+                return .ed25519(username: username, privateKey: ed)
+            }
+            return .passwordBased(username: username, password: password ?? "")
+        }
+        var settings = SSHClientSettings(host: host, port: port,
+                                         authenticationMethod: auth,
+                                         hostKeyValidator: .acceptAnything())
+        settings.connectTimeout = .seconds(Int64(min(max(timeout, 5), 120)))
+        do {
+            return try await withThrowingTaskGroup(of: String.self) { group in
+                group.addTask {
+                    let client = try await SSHClient.connect(to: settings)
+                    var out: String
+                    do {
+                        var buf = try await client.executeCommand(command)
+                        out = buf.readString(length: buf.readableBytes) ?? "(binary output)"
+                    } catch {
+                        try? await client.close()
+                        throw error
+                    }
+                    try? await client.close()
+                    return out
+                }
+                group.addTask {
+                    try await Task.sleep(nanoseconds: UInt64(min(max(timeout, 5), 300) * 1_000_000_000))
+                    throw ToolError.io("SSH timed out after \(timeout)s.")
+                }
+                guard let result = try await group.next() else { return "(no result)" }
+                group.cancelAll()
+                return String(result.prefix(8000))
+            }
+        } catch {
+            return "SSH error: \(error)"
+        }
+    }
+
+    // MARK: - Internal shell (JavaScriptCore)
+
+    /// Execute JavaScript in the built-in shell. Real execution, persistent state.
+    /// Swift cannot be compiled at runtime inside an app sandbox; this is the real
+    /// scriptable shell the platform allows.
+    private func jsRun(code: String) -> String {
+        guard !code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return "Empty code."
+        }
+        jsBox.lock.lock()
+        defer { jsBox.lock.unlock() }
+        var logs: [String] = []
+        let ctx = jsBox.context
+        let logBlock: @convention(block) (String) -> Void = { logs.append($0) }
+        ctx.setObject(logBlock, forKeyedSubscript: "print" as NSString)
+        ctx.exceptionHandler = { _, exc in
+            logs.append("EXCEPTION: \(exc?.toString() ?? "unknown")")
+        }
+        let result = ctx.evaluateScript(code)
+        var out = logs.joined(separator: "\n")
+        if let r = result, !r.isUndefined, !r.isNull,
+           let s = r.toString(), !s.isEmpty {
+            if !out.isEmpty { out += "\n" }
+            out += "=> \(s)"
+        }
+        return out.isEmpty ? "(no output)" : String(out.prefix(6000))
+    }
+
+    // MARK: - Deep system scan (read-only)
+
+    /// Full enumeration of everything the sandbox permits: device, sandbox cage,
+    /// filesystem visibility, network interfaces, granted permissions, privilege level.
+    /// Recon only. It reports the cage; breaking the cage needs a jailbreak, not an app.
+    private func sysScan() async -> String {
+        var r: [String] = []
+        let dev = UIDevice.current
+        dev.isBatteryMonitoringEnabled = true
+        let fm = FileManager.default
+
+        r.append("== DEVICE ==")
+        r.append("model: \(dev.model) (\(dev.name))")
+        r.append("os: \(dev.systemName) \(dev.systemVersion)")
+        r.append("vendor id: \(dev.identifierForVendor?.uuidString ?? "?")")
+        let pct = dev.batteryLevel < 0 ? "?" : "\(Int(dev.batteryLevel * 100))%"
+        r.append("battery: \(pct)")
+
+        r.append("== CPU / MEMORY / DISK ==")
+        r.append("cpus: \(ProcessInfo.processInfo.processorCount) active \(ProcessInfo.processInfo.activeProcessorCount)")
+        let memGB = Double(ProcessInfo.processInfo.physicalMemory) / 1_073_741_824
+        r.append(String(format: "memory: %.1f GB", memGB))
+        if let attrs = try? fm.attributesOfFileSystem(forPath: NSHomeDirectory()) {
+            let total = (attrs[.systemSize] as? NSNumber)?.int64Value ?? 0
+            let free = (attrs[.systemFreeSize] as? NSNumber)?.int64Value ?? 0
+            r.append(String(format: "disk: %.1f GB free / %.1f GB total",
+                            Double(free) / 1_073_741_824, Double(total) / 1_073_741_824))
+        }
+
+        r.append("== APP / SANDBOX ==")
+        r.append("bundle: \(Bundle.main.bundleIdentifier ?? "?")")
+        let ver = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+        r.append("version: \(ver) (\(build))")
+        r.append("home: \(NSHomeDirectory())")
+        r.append("uid/gid: \(getuid())/\(getgid()) (mobile user, no root)")
+
+        r.append("== FILESYSTEM VISIBILITY ==")
+        for path in ["/System/Library", "/System/Library/Frameworks", "/usr/lib",
+                     "/usr/bin", "/bin", "/etc", "/private/var/mobile", NSHomeDirectory()] {
+            if let n = try? fm.contentsOfDirectory(atPath: path).count {
+                r.append("\(path): readable (\(n) entries)")
+            } else if fm.fileExists(atPath: path) {
+                r.append("\(path): exists, not listable")
+            } else {
+                r.append("\(path): denied")
+            }
+        }
+        let probe = URL(fileURLWithPath: NSHomeDirectory())
+            .appendingPathComponent("Documents/.deck_writetest")
+        let writable: Bool = {
+            do { try "x".write(to: probe, atomically: true, encoding: .utf8)
+                 try? fm.removeItem(at: probe); return true } catch { return false }
+        }()
+        r.append("sandbox writable: \(writable)")
+
+        r.append("== NETWORK INTERFACES ==")
+        for (name, addr) in interfaceAddresses() {
+            r.append("\(name): \(addr)")
+        }
+
+        r.append("== GRANTED PERMISSIONS ==")
+        r.append("photos: \(PHPhotoLibrary.authorizationStatus(for: .readWrite))")
+        let ns = await UNUserNotificationCenter.current().notificationSettings()
+        r.append("notifications: alert=\(ns.alertSetting.rawValue) badge=\(ns.badgeSetting.rawValue) sound=\(ns.soundSetting.rawValue)")
+
+        r.append("== PRIVILEGE SURFACE ==")
+        r.append("sandboxed app container; no fork()/process spawn; no raw sockets;")
+        r.append("no access outside container except user-granted permissions above.")
+        r.append("Raising privilege needs a kernel exploit (jailbreak), not an app feature.")
+        return r.joined(separator: "\n")
+    }
+
+    /// Interface name + address pairs via getifaddrs (no location/network permission needed).
+    private func interfaceAddresses() -> [(String, String)] {
+        var result: [(String, String)] = []
+        var head: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&head) == 0, let first = head else { return result }
+        defer { freeifaddrs(head) }
+        var p: UnsafeMutablePointer<ifaddrs>? = first
+        while let cur = p {
+            let flags = cur.pointee.ifa_flags
+            if (flags & UInt32(IFF_UP)) != 0, (flags & UInt32(IFF_LOOPBACK)) == 0,
+               let addr = cur.pointee.ifa_addr {
+                let fam = addr.pointee.sa_family
+                if fam == UInt8(AF_INET) || fam == UInt8(AF_INET6) {
+                    var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                    let len: socklen_t = fam == UInt8(AF_INET)
+                        ? socklen_t(MemoryLayout<sockaddr_in>.size)
+                        : socklen_t(MemoryLayout<sockaddr_in6>.size)
+                    if getnameinfo(addr, len, &host, socklen_t(NI_MAXHOST),
+                                   nil, 0, NI_NUMERICHOST) == 0 {
+                        result.append((String(cString: cur.pointee.ifa_name),
+                                       String(cString: host)))
+                    }
+                }
+            }
+            p = cur.pointee.ifa_next
+        }
+        return result
     }
 }
