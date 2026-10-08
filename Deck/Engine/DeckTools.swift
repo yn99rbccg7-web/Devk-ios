@@ -27,7 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
-        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info",
+        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info", "social_search",
     ]
 
     private let store = MemoryStore.shared
@@ -167,6 +167,9 @@ final class DeckTools: Sendable {
 
         case "bin_info":
             return binInfo(path: args["path"] ?? "")
+
+        case "social_search":
+            return await socialSearch(platform: args["platform"] ?? "", query: args["query"] ?? "")
 
         case "jailbreak_status":
             return jailbreakStatus()
@@ -806,5 +809,128 @@ final class DeckTools: Sendable {
         let body = strs.joined(separator: "\n")
         r.append(String(body.prefix(4000)))
         return r.joined(separator: "\n")
+    }
+
+    // MARK: - Social reach (no-login platforms, on-device)
+
+    /// Read/search the parts of the internet that need no login: reddit (public
+    /// search.json), github (public API), v2ex (hot topics), rss (any feed).
+    /// Read-only. Login-backed platforms (twitter/X, instagram, facebook, youtube
+    /// transcripts, xiaohongshu, bilibili...) need Agent-Reach on a real box —
+    /// drive it over ssh_exec. Never invent posts; quote what was fetched.
+    private func socialSearch(platform: String, query: String) async -> String {
+        switch platform.lowercased() {
+        case "reddit": return await redditSearch(query: query)
+        case "github": return await githubSearch(query: query)
+        case "v2ex": return await v2exHot()
+        case "rss": return await rssRead(urlString: query)
+        default:
+            return "On-device platforms: reddit, github, v2ex, rss. "
+                + "The full 16-platform suite (twitter/X, instagram, facebook, youtube, "
+                + "xiaohongshu, bilibili, linkedin...) runs via Agent-Reach on a remote "
+                + "box over ssh_exec."
+        }
+    }
+
+    private func fetchJSON(_ urlString: String, accept: String? = nil) async -> Any? {
+        guard let url = URL(string: urlString) else { return nil }
+        var req = URLRequest(url: url, timeoutInterval: 20)
+        req.setValue("Deck/1.0 (iOS; agent)", forHTTPHeaderField: "User-Agent")
+        if let a = accept { req.setValue(a, forHTTPHeaderField: "Accept") }
+        guard let (data, resp) = try? await URLSession.shared.data(for: req),
+              (resp as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+        return try? JSONSerialization.jsonObject(with: data)
+    }
+
+    private func redditSearch(query: String) async -> String {
+        guard !query.isEmpty else { return "Empty query." }
+        let q = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        guard let json = await fetchJSON("https://www.reddit.com/search.json?q=\(q)&limit=10&sort=relevance"),
+              let data = (json as? [String: Any])?["data"] as? [String: Any],
+              let children = data["children"] as? [[String: Any]] else {
+            return "Reddit fetch failed (rate-limited or offline)."
+        }
+        var out: [String] = []
+        for c in children.prefix(10) {
+            guard let d = c["data"] as? [String: Any],
+                  let title = d["title"] as? String else { continue }
+            let sub = d["subreddit_name_prefixed"] as? String ?? ""
+            let score = d["score"] as? Int ?? 0
+            let comments = d["num_comments"] as? Int ?? 0
+            let link = d["url"] as? String ?? ""
+            var selftext = (d["selftext"] as? String ?? "")
+                .replacingOccurrences(of: "\n", with: " ")
+            if selftext.count > 300 { selftext = String(selftext.prefix(300)) + "…" }
+            out.append("• [\(sub)] \(title) (▲\(score), \(comments) comments)\n  \(link)"
+                + (selftext.isEmpty ? "" : "\n  \(selftext)"))
+        }
+        return out.isEmpty ? "No results." : out.joined(separator: "\n\n")
+    }
+
+    private func githubSearch(query: String) async -> String {
+        guard !query.isEmpty else { return "Empty query." }
+        let q = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        guard let json = await fetchJSON(
+                "https://api.github.com/search/repositories?q=\(q)&per_page=5&sort=stars",
+                accept: "application/vnd.github+json"),
+              let items = (json as? [String: Any])?["items"] as? [[String: Any]] else {
+            return "GitHub fetch failed (rate-limited or offline)."
+        }
+        var out: [String] = []
+        for it in items.prefix(5) {
+            let name = it["full_name"] as? String ?? "?"
+            let desc = (it["description"] as? String ?? "").prefix(200)
+            let stars = it["stargazers_count"] as? Int ?? 0
+            let url = it["html_url"] as? String ?? ""
+            out.append("• \(name) ★\(stars)\n  \(url)\n  \(desc)")
+        }
+        return out.isEmpty ? "No results." : out.joined(separator: "\n\n")
+    }
+
+    private func v2exHot() async -> String {
+        guard let json = await fetchJSON("https://www.v2ex.com/api/topics/hot.json"),
+              let topics = json as? [[String: Any]] else {
+            return "V2EX fetch failed."
+        }
+        var out: [String] = []
+        for tp in topics.prefix(10) {
+            let title = tp["title"] as? String ?? "?"
+            let url = tp["url"] as? String ?? ""
+            let replies = tp["replies"] as? Int ?? 0
+            let node = (tp["node"] as? [String: Any])?["title"] as? String ?? ""
+            out.append("• [\(node)] \(title) (\(replies) replies)\n  https://www.v2ex.com\(url)")
+        }
+        return out.isEmpty ? "No topics." : out.joined(separator: "\n\n")
+    }
+
+    private func rssRead(urlString: String) async -> String {
+        guard let url = URL(string: urlString), !urlString.isEmpty else { return "Bad feed URL." }
+        var req = URLRequest(url: url, timeoutInterval: 20)
+        req.setValue("Deck/1.0 (iOS; agent)", forHTTPHeaderField: "User-Agent")
+        guard let (data, resp) = try? await URLSession.shared.data(for: req),
+              (resp as? HTTPURLResponse)?.statusCode == 200,
+              let xml = String(data: data, encoding: .utf8) else {
+            return "Feed fetch failed."
+        }
+        var out: [String] = []
+        let itemPat = "<item[ >].*?</item>"
+        let items = (try? NSRegularExpression(pattern: itemPat, options: [.dotMatchesLineSeparators]))
+            .map { rx in rx.matches(in: xml, range: NSRange(xml.startIndex..., in: xml))
+                .compactMap { Range($0.range, in: xml).map { String(xml[$0]) } } } ?? []
+        func tag(_ name: String, in s: String) -> String {
+            guard let rx = try? NSRegularExpression(pattern: "<\(name)[ >].*?</\(name)>",
+                                                   options: [.dotMatchesLineSeparators]),
+                  let m = rx.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
+                  let r = Range(m.range, in: s) else { return "" }
+            return String(s[r]).replacingOccurrences(of: "<[^>]+>", with: "",
+                                                     options: .regularExpression)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        for it in items.prefix(10) {
+            let title = tag("title", in: it)
+            let link = tag("link", in: it)
+            if !title.isEmpty { out.append("• \(title)\n  \(link)") }
+        }
+        return out.isEmpty ? "No items parsed." : out.joined(separator: "\n\n")
     }
 }
