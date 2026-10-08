@@ -27,7 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
-        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info", "social_search", "list_skills", "use_skill",
+        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info", "social_search", "list_skills", "use_skill", "book_search",
     ]
 
     private let store = MemoryStore.shared
@@ -176,6 +176,9 @@ final class DeckTools: Sendable {
 
         case "use_skill":
             return useSkill(name: args["name"] ?? "")
+
+        case "book_search":
+            return bookSearch(query: args["query"] ?? "")
 
         case "jailbreak_status":
             return jailbreakStatus()
@@ -977,5 +980,45 @@ final class DeckTools: Sendable {
             return "Unknown skill \(name). Call list_skills {} for the catalog."
         }
         return "SKILL PLAYBOOK: \(m) — follow it now.\n\n" + String(body.prefix(9000))
+    }
+
+    // MARK: - Tradecraft library (Book of Secret Knowledge, bundled offline)
+
+    /// Search the bundled tradecraft bible: pentest methodology, tool references,
+    /// networking, cheat sheets, shell tradecraft. Offline, no API, no login.
+    /// Note: the bash one-liners don't execute here (no bash; js_run is JavaScript)
+    /// but the techniques transfer.
+    private func bookSearch(query: String) -> String {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return "Empty query." }
+        var book: [String: String] = [:]
+        for res in ["book1", "book2"] {
+            guard let url = Bundle.main.url(forResource: res, withExtension: "json"),
+                  let data = try? Data(contentsOf: url),
+                  let obj = try? JSONSerialization.jsonObject(with: data) as? [String: String] else {
+                continue
+            }
+            for (k, v) in obj { book[k] = v }
+        }
+        if book.isEmpty { return "Tradecraft library not bundled." }
+        var hits: [String] = []
+        outer: for chapter in book.keys.sorted() {
+            let ns = book[chapter]! as NSString
+            var searchRange = NSRange(location: 0, length: ns.length)
+            var count = 0
+            while count < 3 {
+                let found = ns.range(of: q, options: .caseInsensitive, range: searchRange)
+                if found.location == NSNotFound { break }
+                let start = max(0, found.location - 300)
+                let end = min(ns.length, found.location + found.length + 300)
+                hits.append("[\(chapter)] …\(ns.substring(with: NSRange(location: start, length: end - start)))…")
+                let next = found.location + found.length
+                searchRange = NSRange(location: next, length: ns.length - next)
+                count += 1
+                if hits.count >= 6 { break outer }
+            }
+        }
+        if hits.isEmpty { return "No matches for \(q)." }
+        return String(hits.joined(separator: "\n\n").prefix(6000))
     }
 }

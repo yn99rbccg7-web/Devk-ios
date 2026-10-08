@@ -26,6 +26,8 @@
 		D3C1F00D0000000000000018 = {isa = PBXBuildFile; fileRef = D3C1F00D000000000000001B; };
 		SK1LL500000000000000002 = {isa = PBXBuildFile; fileRef = SK1LL500000000000000001; };
 		SK1LL500000000000000004 = {isa = PBXBuildFile; fileRef = SK1LL500000000000000003; };
+		BK1LL000000000000000002 = {isa = PBXBuildFile; fileRef = BK1LL000000000000000001; };
+		BK1LL000000000000000004 = {isa = PBXBuildFile; fileRef = BK1LL000000000000000003; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +51,8 @@
 		D3C1F00D000000000000001B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenMemory.swift; sourceTree = "<group>"; };
 		SK1LL500000000000000001 = {isa = PBXFileReference; lastKnownFileType = text.json; path = skills1.json; sourceTree = "<group>"; };
 		SK1LL500000000000000003 = {isa = PBXFileReference; lastKnownFileType = text.json; path = skills2.json; sourceTree = "<group>"; };
+		BK1LL000000000000000001 = {isa = PBXFileReference; lastKnownFileType = text.json; path = book1.json; sourceTree = "<group>"; };
+		BK1LL000000000000000003 = {isa = PBXFileReference; lastKnownFileType = text.json; path = book2.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,7 +109,9 @@
 				A1B2C3D4E5F60718293A4B06,
 				SK1LL500000000000000001,
 				SK1LL500000000000000003,
-			);
+							BK1LL000000000000000001,
+				BK1LL000000000000000003,
+);
 			path = Deck;
 			sourceTree = "<group>";
 		};
@@ -216,7 +222,9 @@
 			files = (
 				SK1LL500000000000000002,
 				SK1LL500000000000000004,
-			);
+							BK1LL000000000000000002,
+				BK1LL000000000000000004,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D3C1F00D000000000000000C = {
