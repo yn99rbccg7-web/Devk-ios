@@ -27,7 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
-        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path",
+        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status",
     ]
 
     private let store = MemoryStore.shared
@@ -159,6 +159,9 @@ final class DeckTools: Sendable {
 
         case "jailbreak_path":
             return jailbreakPath()
+
+        case "net_status":
+            return await netStatus()
 
         case "jailbreak_status":
             return jailbreakStatus()
@@ -588,5 +591,36 @@ final class DeckTools: Sendable {
         r.append("STANDING RULES: never fake an exploit. Never execute without explicit user")
         r.append("confirmation after the full plan — including detection avoidance — is shown.")
         return r.joined(separator: "\n")
+    }
+
+    // MARK: - Uplink awareness
+
+    /// What the system network path is right now: wifi / cellular / none, metered or not.
+    /// The deck rides the system path automatically (eSIM, WiFi, or nothing) — there is
+    /// nothing to configure. The brain, agent, memory, and local tools work fully offline;
+    /// only web-dependent tools need an uplink.
+    private func netStatus() async -> String {
+        await withCheckedContinuation { cont in
+            let mon = NWPathMonitor()
+            mon.pathUpdateHandler = { path in
+                var r: [String] = []
+                switch path.status {
+                case .satisfied: r.append("status: online")
+                case .requiresConnection: r.append("status: captive/standby")
+                default: r.append("status: offline")
+                }
+                var ifs: [String] = []
+                if path.usesInterfaceType(.wifi) { ifs.append("wifi") }
+                if path.usesInterfaceType(.cellular) { ifs.append("cellular") }
+                if path.usesInterfaceType(.wiredEthernet) { ifs.append("ethernet") }
+                if path.usesInterfaceType(.loopback) { ifs.append("loopback") }
+                r.append("uplink: \(ifs.isEmpty ? "none" : ifs.joined(separator: "+"))")
+                r.append("metered: \(path.isExpensive)")
+                r.append("low-data mode: \(path.isConstrained)")
+                mon.cancel()
+                cont.resume(returning: r.joined(separator: "\n"))
+            }
+            mon.start(queue: .global())
+        }
     }
 }

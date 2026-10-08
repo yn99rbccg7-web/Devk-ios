@@ -39,6 +39,9 @@ Tools:
 - js_run {"code": "1+1"} — run JavaScript in the built-in shell (state persists)
 - sys_scan {} — deep read-only scan: device, sandbox, filesystem, network, permissions
 - jailbreak_path {} — build the phased engineering path toward privilege from real scan data (never faked)
+- net_status {} — check the uplink (wifi/cellular/none). You ride the system path automatically;
+  the whole local deck works offline. If offline, say so plainly and do local work instead of
+  failing on web tools.
 - jailbreak_status {} — fingerprint this build, match against the known-jailbreak DB
 
 JAILBREAK PROTOCOL (hard rule):
