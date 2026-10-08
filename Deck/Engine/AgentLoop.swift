@@ -50,8 +50,9 @@ Tools:
   failing on web tools.
 - lan_scan {} — discover live hosts on the joined WiFi /24 (22/80/443). Real on-device WiFi recon.
 - bin_info {"path": "self"} — static analysis of a Mach-O binary (headers, segments,
-  imported dylibs, entry point, strings). Use "self" for the deck's own binary, or a path
-  in the deck folder.
+  imported dylibs, entry point, strings). "self" = the deck's own binary; a deck-folder
+  path; or an absolute device path like /usr/lib/dyld or
+  /System/Library/Frameworks/UIKit.framework/UIKit to dissect system binaries.
 
 REVERSE ENGINEERING (REA methodology — your honest capability map):
 - On-device you do LIGHT static analysis: bin_info on any binary in the deck folder or

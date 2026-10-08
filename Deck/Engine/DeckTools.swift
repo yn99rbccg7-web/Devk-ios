@@ -691,8 +691,9 @@ final class DeckTools: Sendable {
     // MARK: - On-device reverse engineering (light static analysis)
 
     /// Static analysis of a Mach-O binary: headers, segments, imported dylibs,
-    /// entry point, strings. Works on the deck folder or the app's own binary
-    /// ("self"). This is the real on-device RE slice: no decompiler fits on a
+    /// entry point, strings. Works on the deck folder, the app's own binary
+    /// ("self"), or absolute device paths (/usr/lib/dyld, /System/Library/...).
+    /// This is the real on-device RE slice: no decompiler fits on a
     /// phone (Ghidra/Hopper/IDA need desktop engines + GBs of RAM). Heavy lifting
     /// — decompile, call graphs, xrefs — runs via REA on a remote box over ssh_exec.
     private func binInfo(path: String) -> String {
@@ -700,6 +701,10 @@ final class DeckTools: Sendable {
         if path == "self" {
             guard let eurl = Bundle.main.executableURL else { return "No executable URL." }
             url = eurl
+        } else if path.hasPrefix("/") {
+            // Device binaries: the read-only system volume (dyld, frameworks).
+            // Reads only — the sandbox forbids writes there anyway.
+            url = URL(fileURLWithPath: path)
         } else {
             do { url = try jailed(path) } catch { return "Bad path: \(error)" }
         }
