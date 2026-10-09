@@ -677,19 +677,22 @@ final class DeckTools: Sendable {
             p = cur.pointee.ifa_next
         }
         guard ipRaw != 0, maskRaw != 0 else { return "Not on WiFi (no en0 IPv4)." }
-        let network = ipRaw & maskRaw
-        let broadcast = network | ~maskRaw
+        // s_addr is network byte order: convert to host order ONCE here.
+        // All subnet arithmetic below is then plain host-order math; doing
+        // `network + 1` on the raw value would increment the wrong octet.
+        let ip = UInt32(bigEndian: ipRaw)
+        let mask = UInt32(bigEndian: maskRaw)
+        let network = ip & mask
+        let broadcast = network | ~mask
         var targets: [UInt32] = []
         var h = network + 1
         while h < broadcast, targets.count < 512 {
-            if h != ipRaw { targets.append(h) }
+            if h != ip { targets.append(h) }
             h += 1
         }
         @Sendable func dotted(_ v: UInt32) -> String {
-            // s_addr is network byte order; convert to host order before shifting,
-            // otherwise octets come out reversed on little-endian (all iPhones).
-            let h = UInt32(bigEndian: v)
-            "\((h >> 24) & 0xFF).\((h >> 16) & 0xFF).\((h >> 8) & 0xFF).\(h & 0xFF)"
+            // v is host byte order (converted above); shift directly.
+            "\((v >> 24) & 0xFF).\((v >> 16) & 0xFF).\((v >> 8) & 0xFF).\(v & 0xFF)"
         }
         let ports = ["22", "80", "443"]
         let found = await withTaskGroup(of: (String, [String]).self, returning: [(String, [String])].self) { group in
@@ -1095,7 +1098,16 @@ final class DeckTools: Sendable {
             out.append("\(i + 1). \(title)\n   \(href)"
                        + (snippet.isEmpty ? "" : "\n   \(snippet.prefix(220))"))
         }
-        if out.isEmpty { return "No results for \(q)." }
+        if out.isEmpty {
+            // DDG serves a bot-check page to datacenter IPs instead of results.
+            // Name it so the model can route around it (social_search/http_fetch).
+            let blocked = html.range(of: "captcha", options: .caseInsensitive) != nil
+                || html.range(of: "anomaly", options: .caseInsensitive) != nil
+            if blocked {
+                return "Web search hit a bot-check from this network. Try again later, or use social_search / http_fetch instead."
+            }
+            return "No results for \(q)."
+        }
         return out.joined(separator: "\n\n")
     }
 
