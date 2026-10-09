@@ -45,17 +45,19 @@ struct DoDeckIntent: AppIntent {
 /// Makes both intents discoverable as App Shortcuts.
 struct DeckShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
-        AppShortcut(
-            intent: AskDeckIntent(),
-            phrases: ["Ask \(.applicationName)", "Ask Deck a question"],
-            shortTitle: "Ask Deck",
-            systemImageName: "message.fill"
-        )
-        AppShortcut(
-            intent: DoDeckIntent(),
-            phrases: ["Tell \(.applicationName) to \(.applicationName)", "Get Deck to do something"],
-            shortTitle: "Deck Do",
-            systemImageName: "bolt.fill"
-        )
+        [
+            AppShortcut(
+                intent: AskDeckIntent(),
+                phrases: ["Ask \(.applicationName)", "Ask Deck a question"],
+                shortTitle: "Ask Deck",
+                systemImageName: "message.fill"
+            ),
+            AppShortcut(
+                intent: DoDeckIntent(),
+                phrases: ["Tell \(.applicationName) to \(.applicationName)", "Get Deck to do something"],
+                shortTitle: "Deck Do",
+                systemImageName: "bolt.fill"
+            ),
+        ]
     }
 }
