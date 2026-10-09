@@ -235,6 +235,23 @@ final class DeckTools: Sendable {
         }
     }
 
+    /// Single-resume guard for NWPathMonitor callbacks (Swift 6-clean).
+    private final class NetBox: @unchecked Sendable {
+        private let lock = NSLock()
+        private var done = false
+        let cont: CheckedContinuation<String, Never>
+        var mon: NWPathMonitor?
+        init(_ cont: CheckedContinuation<String, Never>) { self.cont = cont }
+        func finish(_ s: String) {
+            lock.lock()
+            defer { lock.unlock() }
+            guard !done else { return }
+            done = true
+            mon?.cancel()
+            cont.resume(returning: s)
+        }
+    }
+
     /// Raw TCP connect test. Real open/closed/timeout signal; raw sockets are blocked by the iOS sandbox.
     private func tcpConnect(host: String, port: String, timeout: Double) async -> String {
         guard let p = UInt16(port), !host.isEmpty else { return "Bad host/port." }
@@ -637,7 +654,9 @@ final class DeckTools: Sendable {
     /// only web-dependent tools need an uplink.
     private func netStatus() async -> String {
         await withCheckedContinuation { cont in
+            let box = NetBox(cont)
             let mon = NWPathMonitor()
+            box.mon = mon
             mon.pathUpdateHandler = { path in
                 var r: [String] = []
                 switch path.status {
@@ -653,8 +672,7 @@ final class DeckTools: Sendable {
                 r.append("uplink: \(ifs.isEmpty ? "none" : ifs.joined(separator: "+"))")
                 r.append("metered: \(path.isExpensive)")
                 r.append("low-data mode: \(path.isConstrained)")
-                mon.cancel()
-                cont.resume(returning: r.joined(separator: "\n"))
+                box.finish(r.joined(separator: "\n"))
             }
             mon.start(queue: .global())
         }
