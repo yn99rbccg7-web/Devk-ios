@@ -1,8 +1,9 @@
 import Foundation
 import SwiftUI
 
-/// Downloads the GGUF model on first launch (multi-GB, Wi-Fi recommended),
-/// with progress and resume support. Fully offline afterwards.
+/// Downloads the GGUF model on first launch (multi-GB), with progress and
+/// resume support. Works over cellular or Wi-Fi, starts immediately — no
+/// waiting for "a good time". Fully offline afterwards.
 @MainActor
 final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDelegate {
     enum State: Equatable {
@@ -51,7 +52,16 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
         state = .downloading
         progress = 0
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 60
+        // Run over any network, right now: cellular explicitly allowed
+        // (a 2.5GB model will use mobile data — user's choice),
+        // expensive (cellular) and constrained (Low Data Mode) networks allowed,
+        // foreground session = starts immediately, never deferred by the OS.
+        config.allowsCellularAccess = true
+        config.allowsExpensiveNetworkAccess = true
+        config.allowsConstrainedNetworkAccess = true
+        config.waitsForConnectivity = true  // pause through dead zones, auto-resume
+        config.timeoutIntervalForRequest = 300  // cellular stalls; don't abort early
+        config.timeoutIntervalForResource = 86400  // 24h cap for the full 2.5GB
         session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
         if let resumeData {
             task = session?.downloadTask(withResumeData: resumeData)
