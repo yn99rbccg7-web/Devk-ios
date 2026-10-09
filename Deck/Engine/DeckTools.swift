@@ -390,16 +390,21 @@ final class DeckTools: Sendable {
     /// Recon only. It reports the cage; breaking the cage needs a jailbreak, not an app.
     private func sysScan() async -> String {
         var r: [String] = []
-        let dev = UIDevice.current
-        dev.isBatteryMonitoringEnabled = true
+        // UIDevice is MainActor-isolated under Swift 6; hop there for the device block.
+        let devInfo = await MainActor.run { () -> (model: String, name: String, system: String, vendor: String, battery: String) in
+            let dev = UIDevice.current
+            dev.isBatteryMonitoringEnabled = true
+            let pct = dev.batteryLevel < 0 ? "?" : "\(Int(dev.batteryLevel * 100))%"
+            return (dev.model, dev.name, "\(dev.systemName) \(dev.systemVersion)",
+                    dev.identifierForVendor?.uuidString ?? "?", pct)
+        }
         let fm = FileManager.default
 
         r.append("== DEVICE ==")
-        r.append("model: \(dev.model) (\(dev.name))")
-        r.append("os: \(dev.systemName) \(dev.systemVersion)")
-        r.append("vendor id: \(dev.identifierForVendor?.uuidString ?? "?")")
-        let pct = dev.batteryLevel < 0 ? "?" : "\(Int(dev.batteryLevel * 100))%"
-        r.append("battery: \(pct)")
+        r.append("model: \(devInfo.model) (\(devInfo.name))")
+        r.append("os: \(devInfo.system)")
+        r.append("vendor id: \(devInfo.vendor)")
+        r.append("battery: \(devInfo.battery)")
 
         r.append("== KERNEL (uname) ==")
         var uts = utsname()
@@ -513,7 +518,9 @@ final class DeckTools: Sendable {
             $0.withMemoryRebound(to: CChar.self, capacity: 256, str) }
         let kernel = withUnsafePointer(to: &uts.release) {
             $0.withMemoryRebound(to: CChar.self, capacity: 256, str) }
-        let ios = UIDevice.current.systemVersion
+        // ProcessInfo isn't MainActor-isolated (UIDevice.current is, under Swift 6).
+        let osv = ProcessInfo.processInfo.operatingSystemVersion
+        let ios = "\(osv.majorVersion).\(osv.minorVersion).\(osv.patchVersion)"
         // checkm8 (bootrom) covers A11 and below = iPhone10,x and older.
         var checkm8Vuln = false
         if machine.hasPrefix("iPhone"),

@@ -102,7 +102,7 @@ actor VisionEngine {
         marked.withCString { cstr in
             var inputText = mtmd_input_text(text: cstr, add_special: true, parse_special: true)
             var bitmaps: [OpaquePointer?] = [bmp]
-            bitmaps.withUnsafeBufferPointer { buf in
+            bitmaps.withUnsafeMutableBufferPointer { buf in
                 guard mtmd_tokenize(mc, chunks, &inputText, buf.baseAddress, 1) == 0 else {
                     failure = "Vision tokenize failed."
                     return

@@ -38,7 +38,7 @@ struct ContentView: View {
                         }
                         .padding()
                     }
-                    .onChange(of: agent.messages.count) { _ in
+                    .onChange(of: agent.messages.count) { _, _ in
                         if let last = agent.messages.last {
                             proxy.scrollTo(last.id, anchor: .bottom)
                         }

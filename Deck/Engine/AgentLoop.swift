@@ -257,8 +257,12 @@ final class AgentLoop: ObservableObject {
 
     /// Strip thinking traces so reasoning can't trigger phantom tool calls.
     private func stripThink(from text: String) -> String {
-        text.replacingOccurrences(of: "<think>.*?</think>", with: "",
-                                  options: [.regularExpression, .dotMatchesLineSeparators])
+        // NSString.CompareOptions has no .dotMatchesLineSeparators; use NSRegularExpression.
+        guard let re = try? NSRegularExpression(pattern: "<think>.*?</think>",
+                                                options: [.dotMatchesLineSeparators]) else { return text }
+        return re.stringByReplacingMatches(in: text,
+                                           range: NSRange(text.startIndex..., in: text),
+                                           withTemplate: "")
     }
 
     /// First capture group of a regex, or nil.
