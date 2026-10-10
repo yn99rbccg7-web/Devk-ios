@@ -198,6 +198,30 @@ final class AgentLoop: ObservableObject {
         var finishedNaturally = false
         var doneSteps: [String] = []
         var lastObservation = ""
+
+        // A1 FIX: Trim transcript if it exceeds token budget.
+        // System prompt ~1800 tokens + transcript must fit in 1472 (2048-512-64).
+        func trimTranscriptIfNeeded() {
+            let maxTranscriptTokens = 1400  // Conservative budget
+            var currentTokens = transcript.count / 4  // Rough estimate
+            // Remove oldest assistant turns first (keep user messages)
+            while currentTokens > maxTranscriptTokens {
+                // Find and remove the oldest assistant turn
+                if let range = transcript.range(of: "<|im_start|>assistant") {
+                    if let endRange = transcript.range(of: "<|im_end|>",
+                                                        range: range.upperBound..<transcript.endIndex) {
+                        transcript.removeSubrange(range.lowerBound..<endRange.upperBound)
+                        currentTokens = transcript.count / 4
+                    } else {
+                        break
+                    }
+                } else {
+                    break
+                }
+            }
+        }
+        trimTranscriptIfNeeded()
+
         while step < maxSteps {
             step += 1
             let prompt = LlamaEngine.qwen3Chat(system: systemPrompt, transcript: transcript)
@@ -205,10 +229,19 @@ final class AgentLoop: ObservableObject {
             var raw = ""
             let stream = await engine.generate(prompt: prompt, maxTokens: 512)
             for await piece in stream {
+                // A2 FIX: Check for engine error sentinel
+                if piece.hasPrefix("⚠️ ENGINE_ERROR:") {
+                    let msg = String(piece.dropFirst(17))
+                    messages.append(ChatMessage(role: .assistant,
+                        text: "Engine error: \(msg). The prompt may be too long; try a shorter request."))
+                    finishedNaturally = true
+                    break
+                }
                 raw += piece
                 turnText += piece
                 upsertStreaming(text: turnText)
             }
+            if finishedNaturally { break }
 
             if let action = parseAction(from: raw) {
                 doneSteps.append(action.name)
@@ -288,7 +321,18 @@ final class AgentLoop: ObservableObject {
             ?? (obj["parameters"] as? [String: Any])
             ?? (obj["args"] as? [String: Any]) ?? [:]
         var args: [String: String] = [:]
-        for (k, v) in argObj { args[k] = "\(v)" }
+        for (k, v) in argObj {
+            // E1 FIX: Serialize properly to JSON. "\(v)" produces Swift
+            // description ([a: 1]) for dicts/arrays, which is invalid JSON.
+            if let s = v as? String {
+                args[k] = s
+            } else if let data = try? JSONSerialization.data(withJSONObject: v, options: []),
+                      let jsonStr = String(data: data, encoding: .utf8) {
+                args[k] = jsonStr
+            } else {
+                args[k] = "\(v)"
+            }
+        }
         return ParsedAction(name: name, args: args)
     }
 
@@ -323,7 +367,17 @@ final class AgentLoop: ObservableObject {
         var args: [String: String] = [:]
         if let data = argsJSON.data(using: .utf8),
            let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            for (k, v) in obj { args[k] = "\(v)" }
+            for (k, v) in obj {
+                // E1 FIX: Same as above - proper JSON serialization.
+                if let s = v as? String {
+                    args[k] = s
+                } else if let data = try? JSONSerialization.data(withJSONObject: v, options: []),
+                          let jsonStr = String(data: data, encoding: .utf8) {
+                    args[k] = jsonStr
+                } else {
+                    args[k] = "\(v)"
+                }
+            }
         }
         return ParsedAction(name: name, args: args)
     }
