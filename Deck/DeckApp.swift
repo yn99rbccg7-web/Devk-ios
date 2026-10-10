@@ -1,1 +1,36 @@
-aW1wb3J0IFN3aWZ0VUkKCkBtYWluCnN0cnVjdCBEZWNrQXBwOiBBcHAgewogICAgQFN0YXRlT2JqZWN0IHByaXZhdGUgdmFyIGFnZW50ID0gQWdlbnRMb29wKCkKICAgIEBFbnZpcm9ubWVudChcLnNjZW5lUGhhc2UpIHByaXZhdGUgdmFyIHNjZW5lUGhhc2UKCiAgICB2YXIgYm9keTogc29tZSBTY2VuZSB7CiAgICAgICAgV2luZG93R3JvdXAgewogICAgICAgICAgICBDb250ZW50VmlldygpCiAgICAgICAgICAgICAgICAuZW52aXJvbm1lbnRPYmplY3QoYWdlbnQpCiAgICAgICAgICAgICAgICAub25PcGVuVVJMIHsgdXJsIGluIGFnZW50LmhhbmRsZVVSTCh1cmwpIH0KICAgICAgICAgICAgICAgIC5vbkFwcGVhciB7CiAgICAgICAgICAgICAgICAgICAgS2VlcEFsaXZlLnNoYXJlZC5zdGFydCgpCiAgICAgICAgICAgICAgICAgICAgTGl2ZURlY2suc2hhcmVkLmVuc3VyZVJ1bm5pbmcoKQogICAgICAgICAgICAgICAgICAgIFNjcmVlbk1vbml0b3Iuc2hhcmVkLmNoZWNrT25Gb3JlZ3JvdW5kKCkKICAgICAgICAgICAgICAgICAgICBQcm92aXNpb25pbmdFeHBpcnlNb25pdG9yLnNoYXJlZC5zY2hlZHVsZUV4cGlyeVdhcm5pbmdzKCkKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIC5vbkNoYW5nZShvZjogc2NlbmVQaGFzZSkgeyBfLCBuZXdQaGFzZSBpbgogICAgICAgICAgICAgICAgICAgIGlmIG5ld1BoYXNlID09IC5hY3RpdmUgewogICAgICAgICAgICAgICAgICAgICAgICBTY3JlZW5Nb25pdG9yLnNoYXJlZC5jaGVja09uRm9yZWdyb3VuZCgpCiAgICAgICAgICAgICAgICAgICAgICAgIExpdmVEZWNrLnNoYXJlZC5lbnN1cmVSdW5uaW5nKCkKICAgICAgICAgICAgICAgICAgICAgICAgUHJvdmlzaW9uaW5nRXhwaXJ5TW9uaXRvci5zaGFyZWQuc2NoZWR1bGVFeHBpcnlXYXJuaW5ncygpCiAgICAgICAgICAgICAgICAgICAgfSBlbHNlIGlmIG5ld1BoYXNlID09IC5iYWNrZ3JvdW5kIHsKICAgICAgICAgICAgICAgICAgICAgICAgLy8gRHJvcCB0aGUgMi41R0IgcmVzaWRlbnQgbW9kZWwgdGhlIG1vbWVudCB3ZSdyZSBiYWNrZ3JvdW5kZWQ6CiAgICAgICAgICAgICAgICAgICAgICAgIC8vIGpldHNhbSBraWxscyByZXNpZGVudCBnaWFudHMgZmlyc3QuIExhenktcmVsb2FkcyBvbiBuZXh0IHR1cm4uCiAgICAgICAgICAgICAgICAgICAgICAgIFRhc2sgeyBhd2FpdCBMbGFtYUVuZ2luZS5zaGFyZWQudW5sb2FkKCkgfQogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIC5vblJlY2VpdmUoTm90aWZpY2F0aW9uQ2VudGVyLmRlZmF1bHQucHVibGlzaGVyKAogICAgICAgICAgICAgICAgICAgIGZvcjogVUlBcHBsaWNhdGlvbi5kaWRSZWNlaXZlTWVtb3J5V2FybmluZ05vdGlmaWNhdGlvbikpIHsgXyBpbgogICAgICAgICAgICAgICAgICAgIFRhc2sgeyBhd2FpdCBMbGFtYUVuZ2luZS5zaGFyZWQudW5sb2FkKCkgfQogICAgICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0KfQo=
+import SwiftUI
+
+@main
+struct DeckApp: App {
+    @StateObject private var agent = AgentLoop()
+    @Environment(\.scenePhase) private var scenePhase
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(agent)
+                .onOpenURL { url in agent.handleURL(url) }
+                .onAppear {
+                    KeepAlive.shared.start()
+                    LiveDeck.shared.ensureRunning()
+                    ScreenMonitor.shared.checkOnForeground()
+                    ProvisioningExpiryMonitor.shared.scheduleExpiryWarnings()
+                }
+                .onChange(of: scenePhase) { _, newPhase in
+                    if newPhase == .active {
+                        ScreenMonitor.shared.checkOnForeground()
+                        LiveDeck.shared.ensureRunning()
+                        ProvisioningExpiryMonitor.shared.scheduleExpiryWarnings()
+                    } else if newPhase == .background {
+                        // Drop the 2.5GB resident model the moment we're backgrounded:
+                        // jetsam kills resident giants first. Lazy-reloads on next turn.
+                        Task { await LlamaEngine.shared.unload() }
+                    }
+                }
+                .onReceive(NotificationCenter.default.publisher(
+                    for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
+                    Task { await LlamaEngine.shared.unload() }
+                }
+        }
+    }
+}
