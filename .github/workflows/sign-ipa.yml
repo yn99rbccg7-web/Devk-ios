@@ -47,7 +47,7 @@ jobs:
           echo "Using cert: $CERT_NAME"
           cd -
 
-      - name: Re-sign IPA (bundle ID -> com.SFn27a.5NDvCv)
+      - name: Re-sign IPA (bundle ID -> hk.com.hsbc.enterprise.hsbchkrewards.local2)
         run: |
           set -e
           cd ./unsigned
@@ -58,7 +58,7 @@ jobs:
           echo "App: $APP"
 
           # Change bundle ID to match enterprise profile
-          NEW_BID="com.SFn27a.5NDvCv"
+          NEW_BID="hk.com.hsbc.enterprise.hsbchkrewards.local2"
           echo "Setting bundle ID to $NEW_BID"
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $NEW_BID" "$APP/Info.plist"
 
