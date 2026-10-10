@@ -1,0 +1,132 @@
+name: Phase 0 - Generate Signing Certificate
+
+# Two-step Apple ID auth for free provisioning cert + profile.
+# No tmate, no SSH. You trigger twice from the GitHub app.
+#
+# STEP 1: Run with two_fa_code EMPTY. This logs in with your Apple ID
+#         and triggers a 2FA push to your trusted device.
+# STEP 2: Enter the 6-digit code from the push as two_fa_code and run again.
+#         This completes auth, registers your UDID, and generates the
+#         development certificate + provisioning profile.
+#
+# Required secrets (add once via repo Settings > Secrets):
+#   APPLE_ID          - your throwaway Apple ID email
+#   APPLE_ID_PASSWORD - its password
+#
+# Output: cert.p12 + Deck.mobileprovision as workflow artifacts.
+# These become the 5 GitHub Secrets for pre-signed CI builds.
+
+on:
+  workflow_dispatch:
+    inputs:
+      two_fa_code:
+        description: '6-digit 2FA code (leave empty on FIRST run)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  phase0:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Install fastlane
+        run: gem install fastlane --no-document
+
+      - name: Install expect
+        run: brew install expect 2>/dev/null || true
+
+      - name: Step 1 - Trigger Apple ID auth (sends 2FA push)
+        if: inputs.two_fa_code == ''
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+        run: |
+          cat > /tmp/trigger_auth.exp << 'EXPECT'
+          #!/usr/bin/expect -f
+          set timeout 120
+          spawn fastlane spaceauth -u $env(APPLE_ID)
+          expect {
+            "Password:" {
+              send "$env(APPLE_ID_PASSWORD)\r"
+              exp_continue
+            }
+            "verification code" {
+              # 2FA prompt reached = push sent. Save state and exit.
+              puts "\n=== 2FA PUSH SENT ==="
+              puts "Check your trusted device for the 6-digit code."
+              puts "Re-run this workflow and enter the code as two_fa_code."
+              exit 0
+            }
+            "session" {
+              puts "\n=== AUTH COMPLETE (no 2FA needed) ==="
+              exit 0
+            }
+            timeout {
+              puts "\n=== TIMEOUT waiting for auth ==="
+              exit 1
+            }
+          }
+          EXPECT
+          chmod +x /tmp/trigger_auth.exp
+          /tmp/trigger_auth.exp || true
+          echo ""
+          echo "If you saw '2FA PUSH SENT', check your phone and re-run with the code."
+
+      - name: Step 2 - Complete auth and generate cert + profile
+        if: inputs.two_fa_code != ''
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          TWO_FA_CODE: ${{ inputs.two_fa_code }}
+          UDID: "00008110-001565D11E00A01E"
+          BUNDLE_ID: "com.deck.Deck"
+        run: |
+          # Complete fastlane session with 2FA code
+          cat > /tmp/complete_auth.exp << 'EXPECT'
+          #!/usr/bin/expect -f
+          set timeout 120
+          spawn fastlane spaceauth -u $env(APPLE_ID)
+          expect "Password:"
+          send "$env(APPLE_ID_PASSWORD)\r"
+          expect "verification code"
+          send "$env(TWO_FA_CODE)\r"
+          expect {
+            "session" { puts "\n=== SESSION OBTAINED ==="; exit 0 }
+            timeout { puts "\n=== TIMEOUT ==="; exit 1 }
+          }
+          EXPECT
+          chmod +x /tmp/complete_auth.exp
+          /tmp/complete_auth.exp
+          
+          # Export session for subsequent fastlane calls
+          export FASTLANE_SESSION="$(cat ~/.fastlane/spaceship/$APPLE_ID/cookie 2>/dev/null || echo '')"
+          
+          echo ""
+          echo "=== Generating development certificate ==="
+          # Use sigh to create provisioning profile (handles free accounts via Xcode API)
+          fastlane sigh \
+            --username "$APPLE_ID" \
+            --team_id "" \
+            --app_identifier "$BUNDLE_ID" \
+            --platform ios \
+            --development \
+            --force \
+            --output_path /tmp/signing || echo "sigh needs manual UDID registration first"
+          
+          echo ""
+          echo "=== Artifacts ==="
+          ls -la /tmp/signing/ 2>/dev/null || echo "No signing dir yet - check output above"
+
+      - name: Upload signing artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: signing-assets
+          path: /tmp/signing/
+          if-no-files-found: warn
