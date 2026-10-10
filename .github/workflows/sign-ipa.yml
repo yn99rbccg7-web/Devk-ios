@@ -17,7 +17,7 @@ jobs:
         with:
           name: Deck-ipa
           path: ./unsigned
-          run-id: ${{ inputs.run_id }}
+          run-id: ${{ inputs.run_id != '' && inputs.run_id || '38039651611' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Import signing certificate
