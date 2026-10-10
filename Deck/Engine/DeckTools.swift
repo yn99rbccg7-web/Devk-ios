@@ -27,7 +27,7 @@ final class DeckTools: Sendable {
         "add_task", "list_tasks", "complete_task",
         "http_fetch", "get_date", "notify", "open_url",
         "tcp_connect", "dns_lookup", "port_scan",
-        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info", "social_search", "web_search", "mcp", "see_image", "list_skills", "use_skill", "book_search",
+        "ssh_exec", "js_run", "sys_scan", "jailbreak_status", "jailbreak_path", "net_status", "lan_scan", "bin_info", "re_analyze", "re_ai_prompt", "re_clone", "social_search", "web_search", "mcp", "see_image", "list_skills", "use_skill", "book_search",
     ]
 
     private let store = MemoryStore.shared
@@ -167,6 +167,18 @@ final class DeckTools: Sendable {
 
         case "bin_info":
             return binInfo(path: args["path"] ?? "")
+
+        case "re_analyze":
+            return REEngine.shared.analyze(path: args["path"] ?? "")
+
+        case "re_ai_prompt":
+            return REEngine.shared.aiPrompt(path: args["path"] ?? "")
+
+        case "re_clone":
+            return REEngine.shared.replicationScaffold(
+                analysis: args["analysis"] ?? "",
+                appName: args["appName"] ?? "Unknown"
+            )
 
         case "social_search":
             return await socialSearch(platform: args["platform"] ?? "", query: args["query"] ?? "")
