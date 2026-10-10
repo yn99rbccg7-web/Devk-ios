@@ -3,6 +3,7 @@
 // Part of Deck iOS app
 
 import Foundation
+import ObjectiveC
 
 /// AI-powered reverse engineering engine
 /// Uses local LLM to understand and replicate software behavior from binary analysis
