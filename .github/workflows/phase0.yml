@@ -52,7 +52,7 @@ jobs:
           set timeout 120
           spawn fastlane spaceauth -u $env(APPLE_ID)
           expect {
-            "Password:" {
+            "Password (for" {
               send "$env(APPLE_ID_PASSWORD)\r"
               exp_continue
             }
@@ -92,7 +92,7 @@ jobs:
           #!/usr/bin/expect -f
           set timeout 120
           spawn fastlane spaceauth -u $env(APPLE_ID)
-          expect "Password:"
+          expect "Password (for"
           send "$env(APPLE_ID_PASSWORD)\r"
           expect "verification code"
           send "$env(TWO_FA_CODE)\r"
