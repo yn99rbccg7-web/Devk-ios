@@ -16,7 +16,10 @@ echo "==> Bundle ID: $BUNDLE_ID | Team: $TEAM_ID"
 
 # Stamp the unique bundle id + team into the project (idempotent via backup restore)
 cp Deck.xcodeproj/project.pbxproj /tmp/project.pbxproj.bak
+# G1 FIX: Update BOTH app and widget bundle IDs. Widget must be prefixed by app ID.
 sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = com\.deck\.Deck;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" \
+    Deck.xcodeproj/project.pbxproj
+sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = com\.deck\.Deck\.DeckWidget;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID.DeckWidget;/g" \
     Deck.xcodeproj/project.pbxproj
 /usr/libexec/PlistBuddy -c "Set :CFBundleURLTypes:0:CFBundleURLName $BUNDLE_ID" Deck/Info.plist 2>/dev/null || true
 
@@ -31,6 +34,7 @@ xcodebuild \
   -archivePath "$OUT/Deck.xcarchive" \
   DEVELOPMENT_TEAM="$TEAM_ID" \
   CODE_SIGN_STYLE=Automatic \
+  -allowProvisioningUpdates \
   archive
 
 cat > "$OUT/ExportOptions.plist" <<EOF
