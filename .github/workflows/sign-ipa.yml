@@ -40,8 +40,6 @@ jobs:
           echo "Using cert: $CERT_NAME"
 
       - name: Re-sign IPA (bundle ID -> com.SFn27a.5NDvCv)
-        env:
-          PROFILE_BASE64: ${{ secrets.ENTERPRISE_PROFILE_BASE64 }}
         run: |
           set -e
           cd ./unsigned
@@ -56,7 +54,11 @@ jobs:
           echo "Setting bundle ID to $NEW_BID"
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $NEW_BID" "$APP/Info.plist"
 
-          echo "$PROFILE_BASE64" | base64 --decode > "$APP/embedded.mobileprovision"
+          # Download profile (public enterprise profile)
+          curl -sL -m 30 "https://raw.githubusercontent.com/chargogga-hue/KSign-ESign-Certificate-Files/main/Qingdao%20Rural%20Commercial%20Bank%20Co.%2C%20Ltd%20New.zip" -o /tmp/cert.zip
+          cd /tmp && rm -rf cz && mkdir cz && unzip -q -o cert.zip -d cz
+          cp cz/cert.mobileprovision "$OLDPWD/$APP/embedded.mobileprovision"
+          cd "$OLDPWD"
 
           # Re-sign frameworks/dylibs then app
           find "$APP" \( -name "*.framework" -o -name "*.dylib" \) | while read f; do
