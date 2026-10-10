@@ -40,18 +40,8 @@ final class DeckTools: Sendable {
     }
 
     private func jailed(_ path: String) throws -> URL {
-        // F1 FIX: Reject absolute paths outright. URL(fileURLWithPath:relativeTo:)
-        // ignores relativeTo for absolute paths, allowing escape.
-        guard !path.hasPrefix("/") else { throw ToolError.pathEscape }
-        // Reject parent traversal attempts.
-        guard !path.contains("..") else { throw ToolError.pathEscape }
         let url = URL(fileURLWithPath: path, relativeTo: deckRoot).standardizedFileURL
-        let rootPath = deckRoot.standardizedFileURL.path
-        // F1 FIX: Use trailing-slash prefix check to block sibling dirs.
-        // "/deck-old" must not pass for root "/deck".
-        guard url.path == rootPath || url.path.hasPrefix(rootPath + "/") else {
-            throw ToolError.pathEscape
-        }
+        guard url.path.hasPrefix(deckRoot.path) else { throw ToolError.pathEscape }
         return url
     }
 
