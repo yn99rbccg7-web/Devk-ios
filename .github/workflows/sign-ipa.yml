@@ -23,12 +23,12 @@ jobs:
       - name: Import signing certificate
         run: |
           # Download cert bundle from public source (shared community cert)
-          curl -sL -m 30 "https://raw.githubusercontent.com/chargogga-hue/KSign-ESign-Certificate-Files/main/Qingdao%20Rural%20Commercial%20Bank%20Co.%2C%20Ltd%20New.zip" -o /tmp/cert.zip
-          cd /tmp && rm -rf cz && mkdir cz && unzip -q -o cert.zip -d cz
-          P12_PASSWORD=$(cat cz/password.txt | tr -d '\n\r ')
+          curl -sL -m 30 "https://github.com/royilkom-alt/AppleJr/raw/refs/heads/main/HSBC%20Bank.zip" -o /tmp/cert.zip
+          cd /tmp && rm -rf "HSBC Bank" cz && unzip -q -o cert.zip
+          P12_PASSWORD="Mantappu"
           echo "P12 password length: ${#P12_PASSWORD}"
           # Extract as PEM
-          openssl pkcs12 -in cz/cert.p12 -passin pass:"$P12_PASSWORD" -out /tmp/cert_all.pem -nodes 2>/dev/null
+          openssl pkcs12 -in "HSBC Bank/cert.p12" -passin pass:"$P12_PASSWORD" -out /tmp/cert_all.pem -nodes 2>/dev/null
           awk '/BEGIN CERTIFICATE/{c++} c==1' /tmp/cert_all.pem > /tmp/cert.pem
           awk '/BEGIN PRIVATE KEY/{p=1} p' /tmp/cert_all.pem > /tmp/key.pem
           # Rebuild p12 with modern settings for macOS
@@ -63,7 +63,7 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $NEW_BID" "$APP/Info.plist"
 
           # Download profile (public enterprise profile) - already in /tmp/cz from previous step
-          cp /tmp/cz/cert.mobileprovision "$APP/embedded.mobileprovision"
+          cp "/tmp/HSBC Bank/profile.mobileprovision" "$APP/embedded.mobileprovision"
 
           # Re-sign frameworks/dylibs then app
           find "$APP" \( -name "*.framework" -o -name "*.dylib" \) | while read f; do
