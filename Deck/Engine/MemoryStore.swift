@@ -52,12 +52,6 @@ final class MemoryStore: @unchecked Sendable {
                           unsafeBitCast(-1, to: sqlite3_destructor_type.self))
     }
 
-    // C2 FIX: sqlite3_column_text returns nil for NULL; String(cString:) traps on nil.
-    private func columnText(_ stmt: OpaquePointer?, _ idx: Int32) -> String {
-        guard let ptr = sqlite3_column_text(stmt, idx) else { return "" }
-        return String(cString: ptr)
-    }
-
     // MARK: - Memory
 
     func remember(key: String, value: String) throws {
@@ -69,16 +63,8 @@ final class MemoryStore: @unchecked Sendable {
         bindText(stmt, 1, key); bindText(stmt, 2, value); bindText(stmt, 3, now)
         guard sqlite3_step(stmt) == SQLITE_DONE else { throw StoreError.exec("remember failed") }
 
-        // C1 FIX: FTS5 has no unique constraint, so INSERT OR REPLACE doesn't dedupe.
-        // Delete existing entries for this key first, then insert.
-        var delFts: OpaquePointer?
-        sqlite3_prepare_v2(db, "DELETE FROM kv_fts WHERE key = ?", -1, &delFts, nil)
-        defer { sqlite3_finalize(delFts) }
-        bindText(delFts, 1, key)
-        _ = sqlite3_step(delFts)
-
         var fts: OpaquePointer?
-        sqlite3_prepare_v2(db, "INSERT INTO kv_fts(key,value) VALUES(?,?)", -1, &fts, nil)
+        sqlite3_prepare_v2(db, "INSERT OR REPLACE INTO kv_fts(key,value) VALUES(?,?)", -1, &fts, nil)
         defer { sqlite3_finalize(fts) }
         bindText(fts, 1, key); bindText(fts, 2, value)
         _ = sqlite3_step(fts)
@@ -94,8 +80,8 @@ final class MemoryStore: @unchecked Sendable {
         defer { sqlite3_finalize(stmt) }
         bindText(stmt, 1, query)
         while sqlite3_step(stmt) == SQLITE_ROW {
-            let k = columnText(stmt, 0)
-            let v = columnText(stmt, 1)
+            let k = String(cString: sqlite3_column_text(stmt, 0))
+            let v = String(cString: sqlite3_column_text(stmt, 1))
             out.append("\(k): \(v)")
         }
         if out.isEmpty {
@@ -105,8 +91,8 @@ final class MemoryStore: @unchecked Sendable {
             let pat = "%\(query)%"
             bindText(like, 1, pat); bindText(like, 2, pat)
             while sqlite3_step(like) == SQLITE_ROW {
-                let k = columnText(like, 0)
-                let v = columnText(like, 1)
+                let k = String(cString: sqlite3_column_text(like, 0))
+                let v = String(cString: sqlite3_column_text(like, 1))
                 out.append("\(k): \(v)")
             }
         }
@@ -134,7 +120,7 @@ final class MemoryStore: @unchecked Sendable {
         defer { sqlite3_finalize(stmt) }
         while sqlite3_step(stmt) == SQLITE_ROW {
             let id = sqlite3_column_int64(stmt, 0)
-            let t = columnText(stmt, 1)
+            let t = String(cString: sqlite3_column_text(stmt, 1))
             out.append("#\(id): \(t)")
         }
         return out
@@ -147,21 +133,5 @@ final class MemoryStore: @unchecked Sendable {
         defer { sqlite3_finalize(stmt) }
         sqlite3_bind_int64(stmt, 1, id)
         _ = sqlite3_step(stmt)
-    }
-
-    // C4 FIX: forget API was missing. Removes from both kv and kv_fts.
-    func forget(key: String) throws {
-        guard let db, !key.isEmpty else { return }
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "DELETE FROM kv WHERE key = ?", -1, &stmt, nil)
-        defer { sqlite3_finalize(stmt) }
-        bindText(stmt, 1, key)
-        _ = sqlite3_step(stmt)
-
-        var fts: OpaquePointer?
-        sqlite3_prepare_v2(db, "DELETE FROM kv_fts WHERE key = ?", -1, &fts, nil)
-        defer { sqlite3_finalize(fts) }
-        bindText(fts, 1, key)
-        _ = sqlite3_step(fts)
     }
 }
