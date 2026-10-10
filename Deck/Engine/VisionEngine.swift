@@ -1,42 +1,6 @@
 import Foundation
 import LlamaSwift
 
-/// D1 FIX: Reference-counted llama backend manager.
-/// Both LlamaEngine and VisionEngine share the global llama backend.
-/// Previously VisionEngine called llama_backend_free() while LlamaEngine was
-/// still loaded -> use-after-free crash. Now init/free are balanced via refcount.
-final class LlamaBackendManager: @unchecked Sendable {
-    static let shared = LlamaBackendManager()
-    private var refCount = 0
-    private let lock = NSLock()
-    private init() {}
-
-    /// Acquire the backend (calls llama_backend_init on first acquire).
-    /// Returns true if this call initialized the backend.
-    @discardableResult
-    func acquire() -> Bool {
-        lock.lock()
-        defer { lock.unlock() }
-        refCount += 1
-        if refCount == 1 {
-            llama_backend_init()
-            return true
-        }
-        return false
-    }
-
-    /// Release the backend (calls llama_backend_free when refcount hits zero).
-    func release() {
-        lock.lock()
-        defer { lock.unlock() }
-        guard refCount > 0 else { return }
-        refCount -= 1
-        if refCount == 0 {
-            llama_backend_free()
-        }
-    }
-}
-
 /// On-demand vision brain: MiniCPM-V-4.6 0.8B abliterated (0.42GB) + mmproj (0.73GB).
 /// Loads only for a see_image call and unloads before returning — never resident
 /// alongside the 2.5GB text brain.
@@ -74,10 +38,8 @@ actor VisionEngine {
             return "Image not found."
         }
 
-        // D1 FIX: Use refcounted backend instead of raw init/free.
-        // If LlamaEngine is loaded, backend is already up; we just bump the refcount.
-        LlamaBackendManager.shared.acquire()
-        defer { LlamaBackendManager.shared.release() }
+        llama_backend_init()
+        defer { llama_backend_free() }
 
         // 1. Text model (the VLM's language tower).
         var mparams = llama_model_default_params()
@@ -157,20 +119,17 @@ actor VisionEngine {
                 defer { llama_batch_free(batch) }
                 let eos = llama_vocab_eos(vocab)
                 var nCur = nPast
-                // B1 FIX: Buffer partial UTF-8 sequences across tokens.
-                var utf8Buffer: [UInt8] = []
                 for _ in 0 ..< 256 {
                     let tok = llama_sampler_sample(chain, lc, -1)
                     llama_sampler_accept(chain, tok)
                     if tok == eos { break }
                     var pbuf = [CChar](repeating: 0, count: 64)
                     let len = llama_token_to_piece(vocab, tok, &pbuf, 64, 0, false)
-                    guard len > 0 else { continue }
-                    let bytes = pbuf.prefix(Int(len)).map { UInt8(bitPattern: $0) }
-                    utf8Buffer.append(contentsOf: bytes)
-                    if let piece = String(bytes: utf8Buffer, encoding: .utf8) {
-                        utf8Buffer.removeAll(keepingCapacity: true)
-                        out += piece
+                    if len > 0 {
+                        let bytes = pbuf.prefix(Int(len)).map { UInt8(bitPattern: $0) }
+                        if let piece = String(bytes: bytes, encoding: .utf8) {
+                            out += piece
+                        }
                     }
                     batch.n_tokens = 1
                     batch.token[0] = tok
