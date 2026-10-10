@@ -39,13 +39,11 @@ actor LlamaEngine {
     /// 2048 ctx keeps the 4B brain's KV cache (~150MB) clear of the jetsam line on 6GB iPhones.
     func load(nCtx: Int32 = 2048) throws {
         if isLoaded { return }
-        // D1 FIX: Use refcounted backend (shared with VisionEngine).
-        LlamaBackendManager.shared.acquire()
+        llama_backend_init()
 
         var mparams = llama_model_default_params()
         mparams.n_gpu_layers = 99 // offload everything to Metal
         guard let m = llama_model_load_from_file(modelPath, mparams) else {
-            LlamaBackendManager.shared.release()
             throw EngineError.loadFailed
         }
         model = m
@@ -58,7 +56,6 @@ actor LlamaEngine {
         guard let c = llama_init_from_model(m, cparams) else {
             llama_model_free(m)
             model = nil
-            LlamaBackendManager.shared.release()
             throw EngineError.contextFailed
         }
         ctx = c
@@ -77,8 +74,7 @@ actor LlamaEngine {
         if let c = ctx { llama_free(c); ctx = nil }
         if let m = model { llama_model_free(m); model = nil }
         vocab = nil
-        // D1 FIX: Release backend via refcount (VisionEngine may be using it).
-        LlamaBackendManager.shared.release()
+        llama_backend_free()
         isLoaded = false
     }
 
@@ -97,45 +93,19 @@ actor LlamaEngine {
     // MARK: - Generation
 
     /// Streams generated text pieces for a fully-formed prompt.
-    /// A1 FIX: Checks prompt token count against n_ctx; throws if too large.
-    /// A2 FIX: Throws EngineError on decode failure instead of silent return.
     func generate(prompt: String, maxTokens: Int = 512) -> AsyncStream<String> {
         AsyncStream { continuation in
             Task {
-                do {
-                    try self.runGenerate(prompt: prompt, maxTokens: maxTokens) { piece in
-                        continuation.yield(piece)
-                    }
-                } catch {
-                    // A2: Surface the error via a sentinel piece (stream can't throw).
-                    // AgentLoop checks for this prefix.
-                    continuation.yield("⚠️ ENGINE_ERROR: \(error.localizedDescription)")
+                self.runGenerate(prompt: prompt, maxTokens: maxTokens) { piece in
+                    continuation.yield(piece)
                 }
                 continuation.finish()
             }
         }
     }
 
-    /// Estimate token count (conservative: ~1 token per 3.5 chars for mixed content).
-    func estimateTokens(_ text: String) -> Int {
-        return Int(Double(text.count) / 3.5) + 1
-    }
-
-    /// Maximum prompt tokens allowed (leaves room for maxTokens generation).
-    var maxPromptTokens: Int {
-        return 2048 - 512 - 64  // n_ctx - maxTokens - safety margin
-    }
-
-    private func runGenerate(prompt: String, maxTokens: Int, onPiece: (String) -> Void) throws {
-        guard let ctx, let vocab, let sampler, isLoaded else {
-            throw EngineError.notLoaded
-        }
-
-        // A1 FIX: Check prompt fits in context before decoding.
-        let promptTokens = estimateTokens(prompt)
-        guard promptTokens <= maxPromptTokens else {
-            throw EngineError.contextFailed
-        }
+    private func runGenerate(prompt: String, maxTokens: Int, onPiece: (String) -> Void) {
+        guard let ctx, let vocab, let sampler, isLoaded else { return }
 
         var batch = llama_batch_init(512, 0, 1)
         defer { llama_batch_free(batch) }
@@ -157,7 +127,7 @@ actor LlamaEngine {
                 batch.logits[j] = 0
             }
             batch.logits[chunk - 1] = 1
-            guard llama_decode(ctx, batch) == 0 else { throw EngineError.contextFailed }
+            guard llama_decode(ctx, batch) == 0 else { return }
             pos += Int32(chunk)
             i += chunk
         }
@@ -165,9 +135,6 @@ actor LlamaEngine {
         // Autoregressive decode loop.
         let eos = llama_vocab_eos(vocab)
         var nCur = pos
-        // B1 FIX: Buffer for partial UTF-8 sequences. Tokens often split
-        // multi-byte codepoints; decoding each in isolation drops them.
-        var utf8Buffer: [UInt8] = []
         for _ in 0 ..< maxTokens {
             let tok = llama_sampler_sample(sampler, ctx, batch.n_tokens - 1)
             llama_sampler_accept(sampler, tok)
@@ -175,17 +142,13 @@ actor LlamaEngine {
 
             var buf = [CChar](repeating: 0, count: 64)
             let len = llama_token_to_piece(vocab, tok, &buf, 64, 0, false)
-            // B2 FIX: Handle len < 0 (buffer too small) by skipping.
-            guard len > 0 else { continue }
-            let bytes = buf.prefix(Int(len)).map { UInt8(bitPattern: $0) }
-            utf8Buffer.append(contentsOf: bytes)
-            // Try to decode; if incomplete, keep buffering.
-            if let piece = String(bytes: utf8Buffer, encoding: .utf8) {
-                utf8Buffer.removeAll(keepingCapacity: true)
-                if piece == "<|im_end|>" { break }  // Qwen3 end-of-turn
-                onPiece(piece)
+            if len > 0 {
+                let bytes = buf.prefix(Int(len)).map { UInt8(bitPattern: $0) }
+                if let piece = String(bytes: bytes, encoding: .utf8) {
+                    if piece == "<|im_end|>" { break }  // Qwen3 end-of-turn
+                    onPiece(piece)
+                }
             }
-            // Else: incomplete UTF-8, keep bytes buffered for next token.
 
             batch.n_tokens = 1
             batch.token[0] = tok
@@ -197,10 +160,6 @@ actor LlamaEngine {
             batch.logits[0] = 1
             guard llama_decode(ctx, batch) == 0 else { break }
             nCur += 1
-        }
-        // Flush any remaining buffered bytes (incomplete sequence at end).
-        if !utf8Buffer.isEmpty, let piece = String(bytes: utf8Buffer, encoding: .utf8) {
-            onPiece(piece)
         }
     }
 
