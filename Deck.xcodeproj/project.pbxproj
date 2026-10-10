@@ -13,6 +13,7 @@
 		A1B2C3D4E5F60718293A4B21 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B18; };
 		A1B2C3D4E5F60718293A4B22 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B19; };
 		A1B2C3D4E5F60718293A4B23 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B1A; };
+		A1B2C3D4E5F60718293A4B51 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B50; };
 		A1B2C3D4E5F60718293A4B24 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B1B; };
 		A1B2C3D4E5F60718293A4B25 = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B1C; };
 		D3C1F00D0000000000000007 = {isa = PBXBuildFile; fileRef = D3C1F00D0000000000000002; };
@@ -39,6 +40,7 @@
 		A1B2C3D4E5F60718293A4B18 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LlamaEngine.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B19 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentLoop.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B1A = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckTools.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B50 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = REEngine.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B1B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryStore.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B1C = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDownloader.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B1E = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -127,6 +129,7 @@
 				A1B2C3D4E5F60718293A4B18,
 				A1B2C3D4E5F60718293A4B19,
 				A1B2C3D4E5F60718293A4B1A,
+				A1B2C3D4E5F60718293A4B50,
 				A1B2C3D4E5F60718293A4B1B,
 				A1B2C3D4E5F60718293A4B1C,
 				D3C1F00D0000000000000019,
@@ -254,6 +257,7 @@
 				A1B2C3D4E5F60718293A4B21,
 				A1B2C3D4E5F60718293A4B22,
 				A1B2C3D4E5F60718293A4B23,
+				A1B2C3D4E5F60718293A4B51,
 				A1B2C3D4E5F60718293A4B24,
 				A1B2C3D4E5F60718293A4B25,
 				D3C1F00D0000000000000015,
