@@ -1,5 +1,6 @@
 name: Sign Deck IPA
 
+
 on:
   workflow_dispatch:
     inputs:
@@ -7,6 +8,7 @@ on:
         description: 'Build run ID with the unsigned IPA (default: latest)'
         required: false
         default: ''
+
 
 jobs:
   sign:
@@ -20,15 +22,16 @@ jobs:
           run-id: ${{ inputs.run_id != '' && inputs.run_id || '38039651611' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+
       - name: Import signing certificate
         run: |
           # Download cert bundle from public source (shared community cert)
-          curl -sL -m 30 "https://github.com/royilkom-alt/AppleJr/raw/refs/heads/main/HSBC%20Bank.zip" -o /tmp/cert.zip
-          cd /tmp && rm -rf "HSBC Bank" cz && unzip -q -o cert.zip
-          P12_PASSWORD="Mantappu"
+          curl -sL -m 30 "https://github.com/royilkom-alt/AppleJr/raw/refs/heads/main/VietRubber.zip" -o /tmp/cert.zip
+          cd /tmp && rm -rf "VietRubber" cz && unzip -q -o cert.zip
+          P12_PASSWORD="applejr.net"
           echo "P12 password length: ${#P12_PASSWORD}"
           # Extract as PEM
-          openssl pkcs12 -in "HSBC Bank/cert.p12" -passin pass:"$P12_PASSWORD" -out /tmp/cert_all.pem -nodes 2>/dev/null
+          openssl pkcs12 -in "VietRubber/cert.p12" -passin pass:"$P12_PASSWORD" -out /tmp/cert_all.pem -nodes 2>/dev/null
           awk '/BEGIN CERTIFICATE/{c++} c==1' /tmp/cert_all.pem > /tmp/cert.pem
           awk '/BEGIN PRIVATE KEY/{p=1} p' /tmp/cert_all.pem > /tmp/key.pem
           # Rebuild p12 with modern settings for macOS
@@ -46,8 +49,7 @@ jobs:
           echo "CERT_NAME=$CERT_NAME" >> $GITHUB_ENV
           echo "Using cert: $CERT_NAME"
           cd -
-
-      - name: Re-sign IPA (bundle ID -> hk.com.hsbc.enterprise.hsbchkrewards.local2)
+      - name: Re-sign IPA (bundle ID -> com.egoz.MD.1.VrgCT)
         run: |
           set -e
           cd ./unsigned
@@ -56,15 +58,12 @@ jobs:
           rm -rf Payload && unzip -q "$IPA" -d .
           APP=$(ls -d Payload/*.app | head -1)
           echo "App: $APP"
-
           # Change bundle ID to match enterprise profile
-          NEW_BID="hk.com.hsbc.enterprise.hsbchkrewards.local2"
+          NEW_BID="com.egoz.MD.1.VrgCT"
           echo "Setting bundle ID to $NEW_BID"
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $NEW_BID" "$APP/Info.plist"
-
           # Download profile (public enterprise profile) - already in /tmp/cz from previous step
-          cp "/tmp/HSBC Bank/profile.mobileprovision" "$APP/embedded.mobileprovision"
-
+          cp "/tmp/VietRubber/profile.mobileprovision" "$APP/embedded.mobileprovision"
           # Re-sign frameworks/dylibs then app
           find "$APP" \( -name "*.framework" -o -name "*.dylib" \) | while read f; do
             codesign --remove-signature "$f" 2>/dev/null || true
@@ -72,16 +71,13 @@ jobs:
           done
           codesign --remove-signature "$APP" 2>/dev/null || true
           codesign -f -s "$CERT_NAME" --keychain /tmp/signing.keychain-db "$APP"
-
           echo "Verifying:"
           codesign -dvv "$APP" 2>&1 | head -8
           codesign --verify --deep --strict "$APP" && echo "SIGNATURE VALID"
-
           rm -f ../Deck-signed.ipa
           zip -qr ../Deck-signed.ipa Payload
           cd ..
           ls -lh Deck-signed.ipa
-
       - name: Upload signed IPA
         uses: actions/upload-artifact@v4
         with:
