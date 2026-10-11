@@ -15,7 +15,7 @@ final class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDeleg
     /// on the eval battery (2026-10-08) — Qwen3.5 confabulates facts and arithmetic.
     /// Editable in Settings at runtime.
     static let defaultModelURL =
-        https://huggingface.co/prithivMLmods/NeoHorse-1-4B-Max-Heretic-Uncensored-TURBO/resolve/main/GGUF/NeoHorse-1-4B-Max-Heretic-Uncensored-TURBO.Q4_K_M.gguf
+        "https://huggingface.co/prithivMLmods/NeoHorse-1-4B-Max-Heretic-Uncensored-TURBO/resolve/main/GGUF/NeoHorse-1-4B-Max-Heretic-Uncensored-TURBO.Q4_K_M.gguf"
 
     @Published var state: State = .idle
     @Published var progress: Double = 0
