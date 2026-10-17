@@ -1,11 +1,14 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-17T19:44:15Z
+Auto-generated. Refreshed 2026-10-17T19:57:37Z
 
 ## recent runs
 ```
-2026-10-17T19:44:08Z  handoff-live  workflow_dispatch  in_progress/  e05f883
-2026-10-17T19:43:47Z  pages build and deployment  dynamic  in_progress/  e05f883
+2026-10-17T19:57:31Z  handoff-live  workflow_dispatch  in_progress/  5fb77dd
+2026-10-17T19:57:11Z  pages build and deployment  dynamic  completed/success  5fb77dd
+2026-10-17T19:44:20Z  pages build and deployment  dynamic  completed/success  831059f
+2026-10-17T19:44:08Z  handoff-live  workflow_dispatch  completed/success  e05f883
+2026-10-17T19:43:47Z  pages build and deployment  dynamic  completed/success  e05f883
 2026-10-17T19:40:28Z  pages build and deployment  dynamic  completed/success  da6cc2b
 2026-10-17T19:40:28Z  .github/workflows/handoff.yml  push  completed/failure  da6cc2b
 2026-10-17T19:40:25Z  .github/workflows/handoff.yml  push  completed/failure  4292038
@@ -13,13 +16,12 @@ Auto-generated. Refreshed 2026-10-17T19:44:15Z
 2026-10-17T19:33:57Z  pages build and deployment  dynamic  completed/success  3e4177e
 2026-10-17T19:33:43Z  handoff-live  workflow_dispatch  completed/success  602983b
 2026-10-17T19:33:43Z  pages build and deployment  dynamic  completed/cancelled  602983b
-2026-10-17T19:33:40Z  pages build and deployment  dynamic  completed/cancelled  39189cb
-2026-10-16T12:08:42Z  pages build and deployment  dynamic  completed/success  0b501d3
-2026-10-16T03:16:46Z  Sign Deck IPA  workflow_dispatch  completed/success  f91ce42
 ```
 
 ## artifacts
 ```
+2026-10-17T19:57:21Z  github-pages  6638055  expires 2026-10-18T19:57:20Z  id=12112657288
+2026-10-17T19:44:29Z  github-pages  6638057  expires 2026-10-18T19:44:27Z  id=12112427697
 2026-10-17T19:40:42Z  github-pages  6637684  expires 2026-10-18T19:40:41Z  id=12112168413
 2026-10-17T19:34:13Z  github-pages  6637707  expires 2026-10-18T19:34:12Z  id=12112132620
 2026-10-17T19:43:57Z  github-pages  6637705  expires 2026-10-18T19:43:55Z  id=12111954688

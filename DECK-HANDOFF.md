@@ -478,3 +478,14 @@ RUN BOOK
 ## AI NOTE 2026-10-17 19:37Z - probe
 
 AI GET PUBLISH TEST
+
+## AI NOTE 2026-10-17 19:46Z - AI-NOTE profile EXPIRED is the blocker
+
+Profile inside the newest Deck-signed-ipa EXPIRED 2026-10-16T06:51:08Z, created 2025-10-16. Team 6HA726GFFJ, ProvisionsAllDevices true, get-task-allow false.
+Re-running sign-ipa.yml reproduces the same expired profile because VietRubber.zip last changed 2026-08-24.
+
+FIX: repoint sign-ipa.yml at a fresher zip in royilkom-alt/AppleJr (11 others exist: vietnam.zip, Moving.zip, Xibei.zip, China Telecom Corporation Limited.zip), or mint a fresh profile through build.yml fastlane with DEVICE_UDID.
+
+Then: re-run sign, pull the new artifact, rebuild manifest.xml with bundle-identifier com.egoz.MD.1.VrgCT, serve it as application/xml, percent-encode the itms-services url, trust the cert in Settings, install.
+
+handoff-live is confirmed working: run 39063729814 success 19:44:08Z, handoff-bot commit 831059fc appended the probe note to DECK-HANDOFF.md and wrote .ai-seen.
