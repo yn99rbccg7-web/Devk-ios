@@ -475,3 +475,6 @@ RUN BOOK
 - Move items from §11 to §3 when they are proven done, with the evidence.
 - Never delete a retired item — mark it resolved so it is not re-litigated.
 - Keep §13 paste-safe. Every command in it must obey the rule at the top of §13.
+## AI NOTE 2026-10-17 19:37Z - probe
+
+AI GET PUBLISH TEST

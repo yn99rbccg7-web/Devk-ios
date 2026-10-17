@@ -1,26 +1,30 @@
 # LIVE STATE
 
-Auto-generated. Do not hand-edit. Refreshed 2026-10-17T19:33:50Z
+Auto-generated. Refreshed 2026-10-17T19:44:15Z
 
 ## recent runs
 ```
-2026-10-17T19:33:43Z  handoff-live  workflow_dispatch  in_progress/  602983b
-2026-10-17T19:33:43Z  pages build and deployment  dynamic  in_progress/  602983b
+2026-10-17T19:44:08Z  handoff-live  workflow_dispatch  in_progress/  e05f883
+2026-10-17T19:43:47Z  pages build and deployment  dynamic  in_progress/  e05f883
+2026-10-17T19:40:28Z  pages build and deployment  dynamic  completed/success  da6cc2b
+2026-10-17T19:40:28Z  .github/workflows/handoff.yml  push  completed/failure  da6cc2b
+2026-10-17T19:40:25Z  .github/workflows/handoff.yml  push  completed/failure  4292038
+2026-10-17T19:40:25Z  pages build and deployment  dynamic  completed/cancelled  4292038
+2026-10-17T19:33:57Z  pages build and deployment  dynamic  completed/success  3e4177e
+2026-10-17T19:33:43Z  handoff-live  workflow_dispatch  completed/success  602983b
+2026-10-17T19:33:43Z  pages build and deployment  dynamic  completed/cancelled  602983b
 2026-10-17T19:33:40Z  pages build and deployment  dynamic  completed/cancelled  39189cb
 2026-10-16T12:08:42Z  pages build and deployment  dynamic  completed/success  0b501d3
 2026-10-16T03:16:46Z  Sign Deck IPA  workflow_dispatch  completed/success  f91ce42
-2026-10-16T03:03:11Z  Build Deck IPA  workflow_dispatch  completed/success  f91ce42
-2026-10-11T15:36:51Z  Build Deck IPA  workflow_dispatch  completed/success  f91ce42
-2026-10-11T15:36:16Z  pages build and deployment  dynamic  completed/success  f91ce42
-2026-10-11T14:48:21Z  Build Deck IPA  workflow_dispatch  completed/failure  aeb02b1
-2026-10-11T14:47:43Z  Build Deck IPA  workflow_dispatch  completed/failure  aeb02b1
-2026-10-11T14:37:04Z  pages build and deployment  dynamic  completed/success  aeb02b1
-2026-10-11T07:31:31Z  pages build and deployment  dynamic  completed/success  847d018
 ```
 
 ## artifacts
 ```
+2026-10-17T19:40:42Z  github-pages  6637684  expires 2026-10-18T19:40:41Z  id=12112168413
+2026-10-17T19:34:13Z  github-pages  6637707  expires 2026-10-18T19:34:12Z  id=12112132620
+2026-10-17T19:43:57Z  github-pages  6637705  expires 2026-10-18T19:43:55Z  id=12111954688
 2026-10-17T19:33:51Z  github-pages  6636888  expires 2026-10-18T19:33:50Z  id=12111943258
+2026-10-17T19:40:32Z  github-pages  6637706  expires 2026-10-18T19:40:31Z  id=12111414391
 2026-10-16T03:08:09Z  Deck-ipa  6271711  expires 2027-01-14T03:03:12Z  id=12022063205
 2026-10-16T03:17:03Z  Deck-signed-ipa  6450363  expires 2026-11-15T03:17:01Z  id=12021999888
 2026-10-11T15:41:25Z  Deck-ipa  6271730  expires 2027-01-09T15:36:52Z  id=11707271481
