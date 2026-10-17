@@ -1,19 +1,25 @@
 name: Sign Deck IPA
-
-
 on:
   workflow_dispatch:
     inputs:
       run_id:
-        description: 'Build run ID with the unsigned IPA (default: latest)'
+        description: 'Build run ID holding the unsigned IPA (blank = default)'
         required: false
         default: ''
-
-
+      cert_zip:
+        description: 'Cert bundle filename in royilkom-alt/AppleJr'
+        required: false
+        default: 'Jiangsu Simcere.zip'
+      bundle_id:
+        description: 'Bundle ID, must equal the profile AppID suffix'
+        required: false
+        default: 'com.worksin.one'
 jobs:
   sign:
     runs-on: macos-15
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download unsigned IPA
         uses: actions/download-artifact@v4
         with:
@@ -22,21 +28,25 @@ jobs:
           run-id: ${{ inputs.run_id != '' && inputs.run_id || '38039651611' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-
-      - name: Import signing certificate
+      - name: Import certificate and extract entitlements
+        env:
+          CERT_ZIP: ${{ inputs.cert_zip }}
         run: |
-          # Download cert bundle from public source (shared community cert)
-          curl -sL -m 30 "https://github.com/royilkom-alt/AppleJr/raw/refs/heads/main/VietRubber.zip" -o /tmp/cert.zip
-          cd /tmp && rm -rf "VietRubber" cz && unzip -q -o cert.zip
-          P12_PASSWORD="applejr.net"
-          echo "P12 password length: ${#P12_PASSWORD}"
-          # Extract as PEM
-          openssl pkcs12 -in "VietRubber/cert.p12" -passin pass:"$P12_PASSWORD" -out /tmp/cert_all.pem -nodes 2>/dev/null
+          set -e
+          Z=$(python3 -c "import urllib.parse,os;print(urllib.parse.quote(os.environ['CERT_ZIP']))")
+          echo "cert bundle: $CERT_ZIP"
+          curl -sL -m 60 "https://github.com/royilkom-alt/AppleJr/raw/refs/heads/main/$Z" -o /tmp/cert.zip
+          rm -rf /tmp/cz && mkdir -p /tmp/cz && cd /tmp/cz && unzip -q -o /tmp/cert.zip && cd -
+          P12=$(find /tmp/cz -name '*.p12' | head -1)
+          PROF=$(find /tmp/cz -name '*.mobileprovision' | head -1)
+          echo "P12=$P12"
+          echo "PROF=$PROF"
+          test -n "$P12"
+          test -n "$PROF"
+          openssl pkcs12 -in "$P12" -passin pass:"applejr.net" -out /tmp/cert_all.pem -nodes 2>/dev/null
           awk '/BEGIN CERTIFICATE/{c++} c==1' /tmp/cert_all.pem > /tmp/cert.pem
           awk '/BEGIN PRIVATE KEY/{p=1} p' /tmp/cert_all.pem > /tmp/key.pem
-          # Rebuild p12 with modern settings for macOS
           openssl pkcs12 -export -in /tmp/cert.pem -inkey /tmp/key.pem -out /tmp/rebuilt.p12 -passout pass:temppass123 -name "SignCert" 2>/dev/null
-          echo "Rebuilt p12"
           KEYCHAIN=/tmp/signing.keychain-db
           KEYCHAIN_PW=$(openssl rand -base64 24)
           security create-keychain -p "$KEYCHAIN_PW" "$KEYCHAIN"
@@ -47,37 +57,48 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
           CERT_NAME=$(security find-identity -v -p codesigning "$KEYCHAIN" | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
           echo "CERT_NAME=$CERT_NAME" >> $GITHUB_ENV
-          echo "Using cert: $CERT_NAME"
-          cd -
-      - name: Re-sign IPA (bundle ID -> com.egoz.MD.1.VrgCT)
+          echo "PROF=$PROF" >> $GITHUB_ENV
+          security cms -D -i "$PROF" > /tmp/prof.plist
+          /usr/libexec/PlistBuddy -x -c 'Print :Entitlements' /tmp/prof.plist > /tmp/ent.plist
+          echo "=== profile ==="
+          /usr/libexec/PlistBuddy -c 'Print :Name' /tmp/prof.plist
+          /usr/libexec/PlistBuddy -c 'Print :ExpirationDate' /tmp/prof.plist
+          /usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' /tmp/prof.plist
+          echo "=== entitlements to apply ==="
+          cat /tmp/ent.plist
+
+      - name: Re-sign IPA
+        env:
+          NEW_BID: ${{ inputs.bundle_id }}
         run: |
           set -e
           cd ./unsigned
           IPA=$(ls *.ipa | head -1)
-          echo "Unpacking $IPA"
+          echo "unpacking $IPA"
           rm -rf Payload && unzip -q "$IPA" -d .
           APP=$(ls -d Payload/*.app | head -1)
-          echo "App: $APP"
-          # Change bundle ID to match enterprise profile
-          NEW_BID="com.egoz.MD.1.VrgCT"
-          echo "Setting bundle ID to $NEW_BID"
+          echo "app: $APP"
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $NEW_BID" "$APP/Info.plist"
-          # Download profile (public enterprise profile) - already in /tmp/cz from previous step
-          cp "/tmp/VietRubber/profile.mobileprovision" "$APP/embedded.mobileprovision"
-          # Re-sign frameworks/dylibs then app
+          cp "$PROF" "$APP/embedded.mobileprovision"
           find "$APP" \( -name "*.framework" -o -name "*.dylib" \) | while read f; do
             codesign --remove-signature "$f" 2>/dev/null || true
             codesign -f -s "$CERT_NAME" --keychain /tmp/signing.keychain-db "$f" || true
           done
           codesign --remove-signature "$APP" 2>/dev/null || true
-          codesign -f -s "$CERT_NAME" --keychain /tmp/signing.keychain-db "$APP"
-          echo "Verifying:"
+          codesign -f -s "$CERT_NAME" --keychain /tmp/signing.keychain-db --entitlements /tmp/ent.plist "$APP"
+          echo "verifying:"
           codesign -dvv "$APP" 2>&1 | head -8
           codesign --verify --deep --strict "$APP" && echo "SIGNATURE VALID"
           rm -f ../Deck-signed.ipa
           zip -qr ../Deck-signed.ipa Payload
           cd ..
           ls -lh Deck-signed.ipa
+
+      - name: G8 self-check
+        run: |
+          rm -rf /tmp/x && mkdir -p /tmp/x && unzip -o -q Deck-signed.ipa -d /tmp/x
+          python3 scripts/g8check.py "$(find /tmp/x -name '*.app' | head -1)"
+
       - name: Upload signed IPA
         uses: actions/upload-artifact@v4
         with:
