@@ -1,9 +1,11 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-17T20:21:32Z
+Auto-generated. Refreshed 2026-10-17T20:26:42Z
 
 ## recent runs
 ```
+2026-10-17T20:23:55Z  pages build and deployment  dynamic  completed/success  48e1f14
+2026-10-17T20:21:37Z  pages build and deployment  dynamic  completed/success  cd7dd72
 2026-10-17T20:17:30Z  pages build and deployment  dynamic  completed/success  1a62f8f
 2026-10-17T20:16:18Z  handoff-listener  workflow_dispatch  in_progress/  47f0893
 2026-10-17T20:15:52Z  pages build and deployment  dynamic  completed/success  47f0893
@@ -14,12 +16,12 @@ Auto-generated. Refreshed 2026-10-17T20:21:32Z
 2026-10-17T20:00:41Z  pages build and deployment  dynamic  completed/success  93d445f
 2026-10-17T20:00:30Z  handoff-live  workflow_dispatch  completed/success  71e1965
 2026-10-17T19:57:41Z  pages build and deployment  dynamic  completed/success  71e1965
-2026-10-17T19:57:31Z  handoff-live  workflow_dispatch  completed/success  5fb77dd
-2026-10-17T19:57:11Z  pages build and deployment  dynamic  completed/success  5fb77dd
 ```
 
 ## artifacts
 ```
+2026-10-17T20:24:05Z  github-pages  6643620  expires 2026-10-18T20:24:04Z  id=12113751190
+2026-10-17T20:21:46Z  github-pages  6642934  expires 2026-10-18T20:21:45Z  id=12113620847
 2026-10-17T20:17:37Z  github-pages  6642850  expires 2026-10-18T20:17:37Z  id=12113327236
 2026-10-17T19:57:51Z  github-pages  6638513  expires 2026-10-18T19:57:49Z  id=12113050736
 2026-10-17T20:05:50Z  github-pages  6641484  expires 2026-10-18T20:05:48Z  id=12112977426
@@ -43,8 +45,6 @@ Auto-generated. Refreshed 2026-10-17T20:21:32Z
 2026-10-10T09:55:39Z  Deck-ipa  6271033  expires 2027-01-08T09:51:45Z  id=11665669789
 2026-10-10T09:02:23Z  Deck-ipa  6261088  expires 2027-01-08T08:56:59Z  id=11665551231
 2026-10-10T06:00:14Z  Deck-ipa  6256039  expires 2027-01-08T05:55:41Z  id=11661930710
-2026-10-09T20:23:26Z  Deck-ipa  6256188  expires 2027-01-07T20:19:38Z  id=11642629911
-2026-09-29T01:31:04Z  Deck-ipa  2446981  expires 2026-12-28T01:29:38Z  id=11007868349
 ```
 
 ## newest Deck-signed-ipa embedded profile
