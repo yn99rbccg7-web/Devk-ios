@@ -1,0 +1,55 @@
+name: handoff-live
+on:
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: handoff-live
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: regenerate live state
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          R="${{ github.repository }}"
+          {
+            echo "# LIVE STATE"
+            echo
+            echo "Auto-generated. Do not hand-edit. Refreshed $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo
+            echo "## recent runs"
+            echo '```'
+            gh run list -R "$R" -L 12 --json createdAt,name,event,status,conclusion,headSha -q '.[] | "\(.createdAt)  \(.name)  \(.event)  \(.status)/\(.conclusion)  \(.headSha[0:7])"'
+            echo '```'
+            echo
+            echo "## artifacts"
+            echo '```'
+            gh api "repos/$R/actions/artifacts?per_page=25" -q '.artifacts[] | "\(.created_at)  \(.name)  \(.size_in_bytes)  expires \(.expires_at)  id=\(.id)"'
+            echo '```'
+            echo
+            echo "## newest Deck-signed-ipa embedded profile"
+            echo '```'
+            ID=$(gh api "repos/$R/actions/artifacts?per_page=25" -q '[.artifacts[]|select(.name=="Deck-signed-ipa")][0].id')
+            if [ -n "$ID" ] && [ "$ID" != "null" ]; then
+              gh api "repos/$R/actions/artifacts/$ID/zip" > /tmp/a.zip
+              mkdir -p /tmp/a /tmp/p && unzip -o -q /tmp/a.zip -d /tmp/a
+              unzip -o -q /tmp/a/*.ipa 'Payload/*/embedded.mobileprovision' -d /tmp/p
+              python3 -c "import plistlib,re,glob;d=open(glob.glob('/tmp/p/Payload/*/embedded.mobileprovision')[0],'rb').read();p=plistlib.loads(re.search(rb'<\?xml.*?</plist>',d,re.S).group(0));print('Expires:',p.get('ExpirationDate'));print('Created:',p.get('CreationDate'));print('Team:',p.get('TeamIdentifier'));print('AllDevices:',p.get('ProvisionsAllDevices'))"
+            else
+              echo "no Deck-signed-ipa artifact"
+            fi
+            echo '```'
+          } > LIVE-STATE.md
+      - name: commit
+        run: |
+          git config user.name handoff-bot
+          git config user.email bot@users.noreply.github.com
+          git add LIVE-STATE.md
+          git diff --cached --quiet || git commit -m "live state $(date -u +%FT%TZ)"
+          git push
