@@ -1,9 +1,10 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-17T20:47:19Z
+Auto-generated. Refreshed 2026-10-17T20:52:29Z
 
 ## recent runs
 ```
+2026-10-17T20:47:23Z  pages build and deployment  dynamic  completed/success  8467807
 2026-10-17T20:42:14Z  pages build and deployment  dynamic  completed/success  4460ea1
 2026-10-17T20:38:39Z  g8-entitlement-check  workflow_dispatch  completed/success  95ee758
 2026-10-17T20:38:15Z  Sign Deck IPA  workflow_dispatch  completed/success  95ee758
@@ -15,11 +16,11 @@ Auto-generated. Refreshed 2026-10-17T20:47:19Z
 2026-10-17T20:31:56Z  pages build and deployment  dynamic  completed/success  bf54044
 2026-10-17T20:26:47Z  pages build and deployment  dynamic  completed/success  770c991
 2026-10-17T20:23:55Z  pages build and deployment  dynamic  completed/success  48e1f14
-2026-10-17T20:21:37Z  pages build and deployment  dynamic  completed/success  cd7dd72
 ```
 
 ## artifacts
 ```
+2026-10-17T20:47:31Z  github-pages  6644567  expires 2026-10-18T20:47:30Z  id=12114565355
 2026-10-17T20:35:40Z  github-pages  6644590  expires 2026-10-18T20:35:38Z  id=12114101117
 2026-10-17T20:26:55Z  github-pages  6643609  expires 2026-10-18T20:26:54Z  id=12113851137
 2026-10-17T20:42:23Z  github-pages  6644564  expires 2026-10-18T20:42:22Z  id=12113757038
@@ -44,7 +45,6 @@ Auto-generated. Refreshed 2026-10-17T20:47:19Z
 2026-10-16T03:17:03Z  Deck-signed-ipa  6450363  expires 2026-11-15T03:17:01Z  id=12021999888
 2026-10-11T15:41:25Z  Deck-ipa  6271730  expires 2027-01-09T15:36:52Z  id=11707271481
 2026-10-10T11:39:32Z  Deck-signed-ipa  6450352  expires 2026-11-09T11:39:30Z  id=11668648926
-2026-10-10T10:43:34Z  Deck-signed-ipa  6450502  expires 2026-11-09T10:43:31Z  id=11667419098
 ```
 
 ## newest Deck-signed-ipa embedded profile
