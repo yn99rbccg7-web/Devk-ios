@@ -1,7 +1,7 @@
 name: handoff-live
 on:
   schedule:
-    - cron: '23 */6 * * *'
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -12,7 +12,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: regenerate live state
+      - name: drain AI inbox
+        env:
+          TOPIC: nightshift-deck-yn99
+        run: |
+          set -e
+          touch .ai-seen
+          curl -s "https://ntfy.sh/$TOPIC/json?poll=1&since=all" > /tmp/msgs.ndjson || true
+          n=0
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            ID=$(printf '%s' "$line" | python3 -c 'import sys,json;print(json.load(sys.stdin).get("id",""))' 2>/dev/null) || continue
+            [ -z "$ID" ] && continue
+            grep -qx "$ID" .ai-seen && continue
+            printf '%s' "$line" | python3 -c '
+import sys,json,datetime
+m=json.load(sys.stdin)
+ts=datetime.datetime.utcfromtimestamp(m["time"]).strftime("%Y-%m-%d %H:%MZ")
+print()
+print("## AI NOTE "+ts+" — "+(m.get("title") or "note"))
+print()
+print(m.get("message",""))
+' >> DECK-HANDOFF.md
+            echo "$ID" >> .ai-seen
+            n=$((n+1))
+          done < /tmp/msgs.ndjson
+          sort -u .ai-seen -o .ai-seen
+          echo "ai notes appended: $n"
+      - name: refresh live state
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -50,6 +77,6 @@ jobs:
         run: |
           git config user.name handoff-bot
           git config user.email bot@users.noreply.github.com
-          git add LIVE-STATE.md
-          git diff --cached --quiet || git commit -m "live state $(date -u +%FT%TZ)"
+          git add -A DECK-HANDOFF.md LIVE-STATE.md .ai-seen
+          git diff --cached --quiet || git commit -m "handoff refresh $(date -u +%FT%TZ)"
           git push
