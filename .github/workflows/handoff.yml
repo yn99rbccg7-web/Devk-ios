@@ -12,33 +12,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: drain AI inbox
         env:
           TOPIC: nightshift-deck-yn99
         run: |
           set -e
           touch .ai-seen
-          curl -s "https://ntfy.sh/$TOPIC/json?poll=1&since=all" > /tmp/msgs.ndjson || true
+          curl -s "https://ntfy.sh/$TOPIC/json?poll=1&since=all" > /tmp/m.ndjson || true
           n=0
           while IFS= read -r line; do
             [ -z "$line" ] && continue
-            ID=$(printf '%s' "$line" | python3 -c 'import sys,json;print(json.load(sys.stdin).get("id",""))' 2>/dev/null) || continue
+            ID=$(printf '%s' "$line" | python3 -c "import sys,json;print(json.load(sys.stdin).get('id',''))" 2>/dev/null) || continue
             [ -z "$ID" ] && continue
             grep -qx "$ID" .ai-seen && continue
-            printf '%s' "$line" | python3 -c '
-import sys,json,datetime
-m=json.load(sys.stdin)
-ts=datetime.datetime.utcfromtimestamp(m["time"]).strftime("%Y-%m-%d %H:%MZ")
-print()
-print("## AI NOTE "+ts+" — "+(m.get("title") or "note"))
-print()
-print(m.get("message",""))
-' >> DECK-HANDOFF.md
+            printf '%s' "$line" | python3 -c "import sys,json,datetime;m=json.load(sys.stdin);open('DECK-HANDOFF.md','a').write(chr(10)+'## AI NOTE '+datetime.datetime.utcfromtimestamp(m['time']).strftime('%Y-%m-%d %H:%MZ')+' - '+(m.get('title') or 'note')+chr(10)+chr(10)+(m.get('message','') or '')+chr(10))"
             echo "$ID" >> .ai-seen
             n=$((n+1))
-          done < /tmp/msgs.ndjson
+          done < /tmp/m.ndjson
           sort -u .ai-seen -o .ai-seen
           echo "ai notes appended: $n"
+
       - name: refresh live state
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,7 +42,7 @@ print(m.get("message",""))
           {
             echo "# LIVE STATE"
             echo
-            echo "Auto-generated. Do not hand-edit. Refreshed $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "Auto-generated. Refreshed $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo
             echo "## recent runs"
             echo '```'
@@ -65,7 +59,8 @@ print(m.get("message",""))
             ID=$(gh api "repos/$R/actions/artifacts?per_page=25" -q '[.artifacts[]|select(.name=="Deck-signed-ipa")][0].id')
             if [ -n "$ID" ] && [ "$ID" != "null" ]; then
               gh api "repos/$R/actions/artifacts/$ID/zip" > /tmp/a.zip
-              mkdir -p /tmp/a /tmp/p && unzip -o -q /tmp/a.zip -d /tmp/a
+              mkdir -p /tmp/a /tmp/p
+              unzip -o -q /tmp/a.zip -d /tmp/a
               unzip -o -q /tmp/a/*.ipa 'Payload/*/embedded.mobileprovision' -d /tmp/p
               python3 -c "import plistlib,re,glob;d=open(glob.glob('/tmp/p/Payload/*/embedded.mobileprovision')[0],'rb').read();p=plistlib.loads(re.search(rb'<\?xml.*?</plist>',d,re.S).group(0));print('Expires:',p.get('ExpirationDate'));print('Created:',p.get('CreationDate'));print('Team:',p.get('TeamIdentifier'));print('AllDevices:',p.get('ProvisionsAllDevices'))"
             else
@@ -73,6 +68,7 @@ print(m.get("message",""))
             fi
             echo '```'
           } > LIVE-STATE.md
+
       - name: commit
         run: |
           git config user.name handoff-bot
