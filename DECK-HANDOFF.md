@@ -626,3 +626,7 @@ Also corrected: the old claim that 11 alternates exist was wrong, 7 of the 12 ar
 Backup if Jiangsu ever gets revoked: Moving.zip or HSBC Bank.zip, both valid past 2027-05.
 
 Add to the handoff as the correction to section 18.
+
+## AI NOTE 2026-10-17 20:52Z - G8 PASS confirmed / sign run 12 green
+
+triggered
