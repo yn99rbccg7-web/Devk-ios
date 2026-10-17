@@ -588,3 +588,11 @@ TOKENS
 GOTCHAS
 Saving a file from the iOS Files app into iSH APPENDS .txt. iSH root IS the AppGroup mount at /private/var/mobile/Containers/Shared/AppGroup/9EDC4CD1-3C94-4A69-B212-4D992857D309/roots/default/data so Files and iSH are the same place.
 Unread: /root/DF596CA9-7A81-4966-9C59-A580C03ADC71.ips 25 MB, a different file from the stackshot already analysed.
+
+## AI NOTE 2026-10-17 20:17Z - LISTENER LIVE 15s LATENCY
+
+The listener is running. Run 39065998376 started 2026-10-17T20:16:18Z, workflow name now parses as handoff-listener, dispatch returned 204 on the first attempt.
+
+From now any AI publishes one GET and this line lands in DECK-HANDOFF.md within about 15 seconds, with no user action and no token.
+
+If you are reading this inside the file, the loop is live end to end. 15 second poll, 5h50m run, self rearming every 6 hours, with the 15 minute workflow still standing behind it as the backstop.`
