@@ -1,10 +1,12 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-17T19:57:37Z
+Auto-generated. Refreshed 2026-10-17T20:00:37Z
 
 ## recent runs
 ```
-2026-10-17T19:57:31Z  handoff-live  workflow_dispatch  in_progress/  5fb77dd
+2026-10-17T20:00:30Z  handoff-live  workflow_dispatch  in_progress/  71e1965
+2026-10-17T19:57:41Z  pages build and deployment  dynamic  completed/success  71e1965
+2026-10-17T19:57:31Z  handoff-live  workflow_dispatch  completed/success  5fb77dd
 2026-10-17T19:57:11Z  pages build and deployment  dynamic  completed/success  5fb77dd
 2026-10-17T19:44:20Z  pages build and deployment  dynamic  completed/success  831059f
 2026-10-17T19:44:08Z  handoff-live  workflow_dispatch  completed/success  e05f883
@@ -14,12 +16,11 @@ Auto-generated. Refreshed 2026-10-17T19:57:37Z
 2026-10-17T19:40:25Z  .github/workflows/handoff.yml  push  completed/failure  4292038
 2026-10-17T19:40:25Z  pages build and deployment  dynamic  completed/cancelled  4292038
 2026-10-17T19:33:57Z  pages build and deployment  dynamic  completed/success  3e4177e
-2026-10-17T19:33:43Z  handoff-live  workflow_dispatch  completed/success  602983b
-2026-10-17T19:33:43Z  pages build and deployment  dynamic  completed/cancelled  602983b
 ```
 
 ## artifacts
 ```
+2026-10-17T19:57:51Z  github-pages  6638513  expires 2026-10-18T19:57:49Z  id=12113050736
 2026-10-17T19:57:21Z  github-pages  6638055  expires 2026-10-18T19:57:20Z  id=12112657288
 2026-10-17T19:44:29Z  github-pages  6638057  expires 2026-10-18T19:44:27Z  id=12112427697
 2026-10-17T19:40:42Z  github-pages  6637684  expires 2026-10-18T19:40:41Z  id=12112168413
