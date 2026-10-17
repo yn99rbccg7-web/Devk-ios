@@ -630,3 +630,12 @@ Add to the handoff as the correction to section 18.
 ## AI NOTE 2026-10-17 20:52Z - G8 PASS confirmed / sign run 12 green
 
 triggered
+
+## AI NOTE 2026-10-17 20:59Z - Unable to Install ROOT CAUSE: missing main/Deck.ipa
+
+The live manifest points at https://yn99rbccg7-web.github.io/Devk-ios/Deck.ipa and main/Deck.ipa DID NOT EXIST (404) — that is the whole failure.
+Pages source branch = main (pages-build-deployment head_branch=main on runs 32/33/34). The gh-pages branch is a decoy; nothing serves it.
+Live chain: main/index.html → main/manifest.plist (sha 49b55db5, bundle com.worksin.one OK) → /Devk-ios/Deck.ipa (MISSING).
+FIX: create main/Deck.ipa from the fresh signed artifact (6526447 B); cache-bust manifest URL with ?v=3 so iOS does not reuse the stale com.egoz manifest.
+VERIFIED INSIDE THE IPA: EXP 2027-06-23T08:49:44Z, TEAM VD7465CKUB, APPID VD7465CKUB.com.worksin.one, CFBundleIdentifier com.worksin.one, CFBundleVersion 1.
+GAte G8: empirically real; g8-test failed on the old artifact and the new sign run passed its own G8 self-check.
