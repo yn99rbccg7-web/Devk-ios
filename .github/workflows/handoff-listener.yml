@@ -1,0 +1,90 @@
+name: handoff-listener
+on:
+  schedule:
+    - cron: '7 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: handoff-listener
+  cancel-in-progress: true
+jobs:
+  listen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 356
+    steps:
+      - uses: actions/checkout@v4
+      - name: listen and commit
+        env:
+          TOPIC: nightshift-deck-yn99
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -u
+          git config user.name handoff-bot
+          git config user.email bot@users.noreply.github.com
+          touch .ai-seen
+          DEADLINE=$((SECONDS + 21000))
+          NEXTSTATE=$SECONDS
+          while [ $SECONDS -lt $DEADLINE ]; do
+            curl -s "https://ntfy.sh/$TOPIC/json?poll=1&since=all" > /tmp/m.ndjson || true
+            n=0
+            while IFS= read -r line; do
+              [ -z "$line" ] && continue
+              ID=$(printf '%s' "$line" | python3 -c "import sys,json;print(json.load(sys.stdin).get('id',''))" 2>/dev/null) || continue
+              [ -z "$ID" ] && continue
+              grep -qx "$ID" .ai-seen && continue
+              printf '%s' "$line" | python3 -c "import sys,json,datetime;m=json.load(sys.stdin);open('DECK-HANDOFF.md','a').write(chr(10)+'## AI NOTE '+datetime.datetime.utcfromtimestamp(m['time']).strftime('%Y-%m-%d %H:%MZ')+' - '+(m.get('title') or 'note')+chr(10)+chr(10)+(m.get('message','') or '')+chr(10))"
+              echo "$ID" >> .ai-seen
+              n=$((n+1))
+            done < /tmp/m.ndjson
+            if [ "$n" -gt 0 ]; then
+              sort -u .ai-seen -o .ai-seen
+              git add -A DECK-HANDOFF.md .ai-seen
+              if ! git diff --cached --quiet; then
+                git commit -m "ai notes $(date -u +%FT%TZ)"
+                git pull --rebase --autostash -q || true
+                git push
+                echo "committed $n note(s) at $(date -u +%FT%TZ)"
+              fi
+            fi
+            if [ $((SECONDS - NEXTSTATE)) -ge 300 ]; then
+              NEXTSTATE=$SECONDS
+              R="${{ github.repository }}"
+              {
+                echo "# LIVE STATE"
+                echo
+                echo "Auto-generated. Refreshed $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                echo
+                echo "## recent runs"
+                echo '```'
+                gh run list -R "$R" -L 12 --json createdAt,name,event,status,conclusion,headSha -q '.[] | "\(.createdAt)  \(.name)  \(.event)  \(.status)/\(.conclusion)  \(.headSha[0:7])"'
+                echo '```'
+                echo
+                echo "## artifacts"
+                echo '```'
+                gh api "repos/$R/actions/artifacts?per_page=25" -q '.artifacts[] | "\(.created_at)  \(.name)  \(.size_in_bytes)  expires \(.expires_at)  id=\(.id)"'
+                echo '```'
+                echo
+                echo "## newest Deck-signed-ipa embedded profile"
+                echo '```'
+                AID=$(gh api "repos/$R/actions/artifacts?per_page=25" -q '[.artifacts[]|select(.name=="Deck-signed-ipa")][0].id')
+                if [ -n "$AID" ] && [ "$AID" != "null" ]; then
+                  gh api "repos/$R/actions/artifacts/$AID/zip" > /tmp/a.zip
+                  mkdir -p /tmp/a /tmp/p
+                  unzip -o -q /tmp/a.zip -d /tmp/a
+                  unzip -o -q /tmp/a/*.ipa 'Payload/*/embedded.mobileprovision' -d /tmp/p
+                  python3 -c "import plistlib,re,glob;d=open(glob.glob('/tmp/p/Payload/*/embedded.mobileprovision')[0],'rb').read();p=plistlib.loads(re.search(rb'<\?xml.*?</plist>',d,re.S).group(0));print('Expires:',p.get('ExpirationDate'));print('Created:',p.get('CreationDate'));print('Team:',p.get('TeamIdentifier'));print('AllDevices:',p.get('ProvisionsAllDevices'))"
+                else
+                  echo "no Deck-signed-ipa artifact"
+                fi
+                echo '```'
+              } > LIVE-STATE.md
+              git add -A LIVE-STATE.md
+              if ! git diff --cached --quiet; then
+                git commit -m "live state $(date -u +%FT%TZ)"
+    git pull --rebase --autostash -q || true
+                git push
+              fi
+            fi
+            sleep 15
+          done
