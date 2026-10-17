@@ -1,0 +1,22 @@
+name: g8-entitlement-check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: fetch newest Deck-signed-ipa
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          ID=$(gh api "repos/${{ github.repository }}/actions/artifacts?per_page=50" --jq '[.artifacts[]|select(.name=="Deck-signed-ipa")][0].id')
+          echo "artifact id: $ID"
+          gh api "repos/${{ github.repository }}/actions/artifacts/$ID/zip" > /tmp/a.zip
+          mkdir -p /tmp/a && unzip -o -q /tmp/a.zip -d /tmp/a
+          find /tmp/a -name '*.ipa'
+      - name: g8 check
+        run: python3 scripts/g8check.py "$(find /tmp/a -name '*.ipa' | head -1)"
