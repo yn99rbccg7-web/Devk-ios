@@ -639,3 +639,7 @@ Live chain: main/index.html → main/manifest.plist (sha 49b55db5, bundle com.wo
 FIX: create main/Deck.ipa from the fresh signed artifact (6526447 B); cache-bust manifest URL with ?v=3 so iOS does not reuse the stale com.egoz manifest.
 VERIFIED INSIDE THE IPA: EXP 2027-06-23T08:49:44Z, TEAM VD7465CKUB, APPID VD7465CKUB.com.worksin.one, CFBundleIdentifier com.worksin.one, CFBundleVersion 1.
 GAte G8: empirically real; g8-test failed on the old artifact and the new sign run passed its own G8 self-check.
+
+## AI NOTE 2026-10-18 12:19Z - SHORT TITLE
+
+URLENCODED BODY
