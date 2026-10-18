@@ -1,9 +1,10 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-18T04:33:10Z
+Auto-generated. Refreshed 2026-10-18T04:38:22Z
 
 ## recent runs
 ```
+2026-10-18T04:33:14Z  pages build and deployment  dynamic  completed/success  e16b0f5
 2026-10-18T04:28:02Z  pages build and deployment  dynamic  completed/success  7ae543d
 2026-10-18T04:22:51Z  pages build and deployment  dynamic  completed/success  8ee14e5
 2026-10-18T04:17:27Z  handoff-listener  schedule  in_progress/  b394f25
@@ -15,7 +16,6 @@ Auto-generated. Refreshed 2026-10-18T04:33:10Z
 2026-10-18T01:32:30Z  handoff-live  schedule  completed/success  18ebefe
 2026-10-17T23:41:44Z  pages build and deployment  dynamic  completed/success  18ebefe
 2026-10-17T23:41:34Z  handoff-live  schedule  completed/success  fa32819
-2026-10-17T21:45:56Z  pages build and deployment  dynamic  completed/success  fa32819
 ```
 
 ## artifacts
@@ -23,6 +23,7 @@ Auto-generated. Refreshed 2026-10-18T04:33:10Z
 2026-10-18T04:23:00Z  github-pages  6644977  expires 2026-10-19T04:22:59Z  id=12125216377
 2026-10-18T04:28:13Z  github-pages  6644970  expires 2026-10-19T04:28:12Z  id=12124807083
 2026-10-18T03:57:06Z  github-pages  6644994  expires 2026-10-19T03:57:05Z  id=12124685675
+2026-10-18T04:33:23Z  github-pages  6644965  expires 2026-10-19T04:33:22Z  id=12124639581
 2026-10-18T03:56:51Z  github-pages  13096290  expires 2026-10-19T03:56:49Z  id=12124077405
 2026-10-18T01:32:55Z  github-pages  13096463  expires 2026-10-19T01:32:53Z  id=12121460523
 2026-10-17T23:41:53Z  github-pages  13096466  expires 2026-10-18T23:41:52Z  id=12118641756
@@ -44,7 +45,6 @@ Auto-generated. Refreshed 2026-10-18T04:33:10Z
 2026-10-17T20:59:42Z  github-pages  6644992  expires 2026-10-18T20:59:41Z  id=12114044309
 2026-10-17T21:01:12Z  github-pages  13096517  expires 2026-10-18T21:01:11Z  id=12114009696
 2026-10-17T20:26:55Z  github-pages  6643609  expires 2026-10-18T20:26:54Z  id=12113851137
-2026-10-17T20:42:23Z  github-pages  6644564  expires 2026-10-18T20:42:22Z  id=12113757038
 ```
 
 ## newest Deck-signed-ipa embedded profile
