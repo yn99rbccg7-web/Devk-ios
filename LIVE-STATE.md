@@ -1,9 +1,10 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-20T16:59:13Z
+Auto-generated. Refreshed 2026-10-20T17:04:19Z
 
 ## recent runs
 ```
+2026-10-20T16:59:19Z  pages build and deployment  dynamic  completed/success  b0f72a1
 2026-10-20T16:54:13Z  pages build and deployment  dynamic  completed/success  e98de13
 2026-10-20T16:48:14Z  handoff-listener  schedule  in_progress/  c8878bc
 2026-10-20T14:01:37Z  pages build and deployment  dynamic  completed/success  c8878bc
@@ -15,11 +16,11 @@ Auto-generated. Refreshed 2026-10-20T16:59:13Z
 2026-10-20T13:39:49Z  pages build and deployment  dynamic  completed/success  d8bac7b
 2026-10-20T13:34:45Z  pages build and deployment  dynamic  completed/success  28ba733
 2026-10-20T13:29:42Z  pages build and deployment  dynamic  completed/success  9b3eb57
-2026-10-20T13:24:38Z  pages build and deployment  dynamic  completed/success  79e9106
 ```
 
 ## artifacts
 ```
+2026-10-20T16:59:29Z  github-pages  6646314  expires 2026-10-21T16:59:28Z  id=12283791261
 2026-10-20T16:54:21Z  github-pages  6644991  expires 2026-10-21T16:54:20Z  id=12283685760
 2026-10-20T14:00:30Z  github-pages  6646288  expires 2026-10-21T14:00:29Z  id=12270205974
 2026-10-20T14:01:50Z  github-pages  6646302  expires 2026-10-21T14:01:48Z  id=12269922447
@@ -44,7 +45,6 @@ Auto-generated. Refreshed 2026-10-20T16:59:13Z
 2026-10-20T12:24:07Z  github-pages  6646283  expires 2026-10-21T12:24:06Z  id=12263104692
 2026-10-20T12:13:58Z  github-pages  6645003  expires 2026-10-21T12:13:57Z  id=12263039383
 2026-10-20T11:58:48Z  github-pages  6646311  expires 2026-10-21T11:58:47Z  id=12262951520
-2026-10-20T11:53:44Z  github-pages  6646309  expires 2026-10-21T11:53:43Z  id=12262915492
 ```
 
 ## newest Deck-signed-ipa embedded profile
