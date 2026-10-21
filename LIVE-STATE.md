@@ -1,9 +1,10 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-21T15:11:04Z
+Auto-generated. Refreshed 2026-10-21T15:12:50Z
 
 ## recent runs
 ```
+2026-10-21T15:12:43Z  handoff-live  schedule  in_progress/  4737500
 2026-10-21T15:06:04Z  pages build and deployment  dynamic  completed/success  d163b0b
 2026-10-21T15:00:59Z  pages build and deployment  dynamic  completed/success  3b5762a
 2026-10-21T14:55:56Z  pages build and deployment  dynamic  completed/success  514e99e
@@ -15,7 +16,6 @@ Auto-generated. Refreshed 2026-10-21T15:11:04Z
 2026-10-21T14:25:32Z  pages build and deployment  dynamic  completed/cancelled  21243f8
 2026-10-21T14:20:28Z  pages build and deployment  dynamic  completed/success  fcef196
 2026-10-21T14:15:24Z  pages build and deployment  dynamic  completed/success  324572b
-2026-10-21T14:10:21Z  pages build and deployment  dynamic  completed/success  d5ad063
 ```
 
 ## artifacts
