@@ -1,9 +1,11 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-22T13:31:02Z
+Auto-generated. Refreshed 2026-10-22T13:36:10Z
 
 ## recent runs
 ```
+2026-10-22T13:31:09Z  pages build and deployment  dynamic  completed/success  90d2e72
+2026-10-22T13:31:08Z  pages build and deployment  dynamic  completed/cancelled  90d2e72
 2026-10-22T13:25:59Z  pages build and deployment  dynamic  completed/success  4443173
 2026-10-22T13:20:52Z  pages build and deployment  dynamic  completed/success  bac77a4
 2026-10-22T13:15:43Z  pages build and deployment  dynamic  completed/success  b956e4a
@@ -14,13 +16,12 @@ Auto-generated. Refreshed 2026-10-22T13:31:02Z
 2026-10-22T12:50:09Z  pages build and deployment  dynamic  completed/success  abf9310
 2026-10-22T12:45:01Z  pages build and deployment  dynamic  completed/success  88644db
 2026-10-22T12:39:53Z  pages build and deployment  dynamic  completed/success  fbd54e0
-2026-10-22T12:34:46Z  pages build and deployment  dynamic  completed/success  cdb244c
-2026-10-22T12:29:40Z  pages build and deployment  dynamic  completed/success  93704ac
 ```
 
 ## artifacts
 ```
 2026-10-22T13:26:10Z  github-pages  6646289  expires 2026-10-23T13:26:08Z  id=12429911185
+2026-10-22T13:31:20Z  github-pages  6644965  expires 2026-10-23T13:31:18Z  id=12428274379
 2026-10-22T13:21:01Z  github-pages  6644966  expires 2026-10-23T13:21:00Z  id=12428143171
 2026-10-22T13:05:38Z  github-pages  6646287  expires 2026-10-23T13:05:37Z  id=12428010990
 2026-10-22T13:10:46Z  github-pages  6646287  expires 2026-10-23T13:10:45Z  id=12427997829
@@ -44,7 +45,6 @@ Auto-generated. Refreshed 2026-10-22T13:31:02Z
 2026-10-22T10:38:50Z  github-pages  6644998  expires 2026-10-23T10:38:49Z  id=12419662171
 2026-10-22T05:34:20Z  github-pages  6644944  expires 2026-10-23T05:34:19Z  id=12404013696
 2026-10-22T05:24:05Z  github-pages  6646322  expires 2026-10-23T05:24:04Z  id=12404001833
-2026-10-22T05:39:27Z  github-pages  6644998  expires 2026-10-23T05:39:26Z  id=12403899914
 ```
 
 ## newest Deck-signed-ipa embedded profile
