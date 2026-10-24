@@ -1,9 +1,11 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-24T13:58:49Z
+Auto-generated. Refreshed 2026-10-24T13:59:31Z
 
 ## recent runs
 ```
+2026-10-24T13:59:23Z  handoff-live  schedule  in_progress/  3b050fc
+2026-10-24T13:58:52Z  pages build and deployment  dynamic  completed/success  3b050fc
 2026-10-24T13:53:49Z  pages build and deployment  dynamic  completed/success  c0ad42f
 2026-10-24T13:48:46Z  pages build and deployment  dynamic  completed/success  4511cc5
 2026-10-24T13:43:43Z  pages build and deployment  dynamic  completed/success  fb4369f
@@ -14,13 +16,12 @@ Auto-generated. Refreshed 2026-10-24T13:58:49Z
 2026-10-24T13:18:25Z  pages build and deployment  dynamic  completed/success  1ded931
 2026-10-24T13:13:22Z  pages build and deployment  dynamic  completed/success  e777873
 2026-10-24T13:08:18Z  pages build and deployment  dynamic  completed/success  f3b7722
-2026-10-24T13:03:16Z  pages build and deployment  dynamic  completed/success  91210ad
-2026-10-24T12:58:11Z  pages build and deployment  dynamic  completed/success  6d69e0d
 ```
 
 ## artifacts
 ```
 2026-10-24T13:28:40Z  github-pages  6644927  expires 2026-10-25T13:28:39Z  id=12562295177
+2026-10-24T13:59:02Z  github-pages  6644913  expires 2026-10-25T13:59:00Z  id=12562159321
 2026-10-24T13:33:44Z  github-pages  6644934  expires 2026-10-25T13:33:43Z  id=12561897301
 2026-10-24T13:18:36Z  github-pages  6644949  expires 2026-10-25T13:18:34Z  id=12561845682
 2026-10-24T13:48:56Z  github-pages  6644956  expires 2026-10-25T13:48:54Z  id=12561773071
@@ -43,7 +44,6 @@ Auto-generated. Refreshed 2026-10-24T13:58:49Z
 2026-10-24T12:12:55Z  github-pages  6644948  expires 2026-10-25T12:12:53Z  id=12559557899
 2026-10-24T12:22:57Z  github-pages  6644954  expires 2026-10-25T12:22:56Z  id=12559497956
 2026-10-24T11:57:41Z  github-pages  6644962  expires 2026-10-25T11:57:40Z  id=12559356477
-2026-10-24T11:27:21Z  github-pages  6644981  expires 2026-10-25T11:27:20Z  id=12559075547
 2026-10-24T11:52:38Z  github-pages  6644947  expires 2026-10-25T11:52:38Z  id=12559048495
 ```
 
