@@ -1,10 +1,12 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-25T07:49:13Z
+Auto-generated. Refreshed 2026-10-25T11:17:48Z
 
 ## recent runs
 ```
-2026-10-25T07:49:06Z  handoff-live  schedule  in_progress/  02bbc38
+2026-10-25T11:12:37Z  handoff-listener  schedule  in_progress/  c6fb7f3
+2026-10-25T07:49:17Z  pages build and deployment  dynamic  completed/success  c6fb7f3
+2026-10-25T07:49:06Z  handoff-live  schedule  completed/success  02bbc38
 2026-10-25T07:46:08Z  pages build and deployment  dynamic  completed/success  02bbc38
 2026-10-25T07:41:02Z  pages build and deployment  dynamic  completed/success  bc2d315
 2026-10-25T07:35:57Z  pages build and deployment  dynamic  completed/success  57e7254
@@ -14,12 +16,11 @@ Auto-generated. Refreshed 2026-10-25T07:49:13Z
 2026-10-25T07:15:38Z  pages build and deployment  dynamic  completed/success  6a49271
 2026-10-25T07:10:32Z  pages build and deployment  dynamic  completed/success  d607781
 2026-10-25T07:05:26Z  pages build and deployment  dynamic  completed/success  e626135
-2026-10-25T07:00:22Z  pages build and deployment  dynamic  completed/success  91203c4
-2026-10-25T06:55:16Z  pages build and deployment  dynamic  completed/success  ebb4079
 ```
 
 ## artifacts
 ```
+2026-10-25T07:49:26Z  github-pages  6644963  expires 2026-10-26T07:49:25Z  id=12591886056
 2026-10-25T07:36:06Z  github-pages  6644937  expires 2026-10-26T07:36:05Z  id=12591575131
 2026-10-25T07:41:10Z  github-pages  6644935  expires 2026-10-26T07:41:09Z  id=12591470954
 2026-10-25T07:31:01Z  github-pages  6644927  expires 2026-10-26T07:31:00Z  id=12591311315
@@ -42,7 +43,6 @@ Auto-generated. Refreshed 2026-10-25T07:49:13Z
 2026-10-25T06:30:00Z  github-pages  6644956  expires 2026-10-26T06:29:59Z  id=12589166958
 2026-10-25T05:34:04Z  github-pages  6644953  expires 2026-10-26T05:34:02Z  id=12588791265
 2026-10-25T05:23:54Z  github-pages  6644980  expires 2026-10-26T05:23:52Z  id=12588645382
-2026-10-25T05:18:49Z  github-pages  6644986  expires 2026-10-26T05:18:47Z  id=12588425306
 2026-10-25T05:39:08Z  github-pages  6644964  expires 2026-10-26T05:39:07Z  id=12588402451
 2026-10-25T05:49:18Z  github-pages  6644957  expires 2026-10-26T05:49:17Z  id=12588273897
 ```
