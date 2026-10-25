@@ -1,9 +1,10 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-25T12:08:57Z
+Auto-generated. Refreshed 2026-10-25T12:14:04Z
 
 ## recent runs
 ```
+2026-10-25T12:09:01Z  pages build and deployment  dynamic  completed/success  bb8dd34
 2026-10-25T12:03:54Z  pages build and deployment  dynamic  completed/success  2f186e2
 2026-10-25T11:58:48Z  pages build and deployment  dynamic  completed/success  5db4754
 2026-10-25T11:53:41Z  pages build and deployment  dynamic  completed/success  93503d2
@@ -15,11 +16,11 @@ Auto-generated. Refreshed 2026-10-25T12:08:57Z
 2026-10-25T11:23:01Z  pages build and deployment  dynamic  completed/success  2e323a9
 2026-10-25T11:17:54Z  pages build and deployment  dynamic  completed/success  9f8b59e
 2026-10-25T11:12:37Z  handoff-listener  schedule  in_progress/  c6fb7f3
-2026-10-25T07:49:17Z  pages build and deployment  dynamic  completed/success  c6fb7f3
 ```
 
 ## artifacts
 ```
+2026-10-25T12:09:11Z  github-pages  6644978  expires 2026-10-26T12:09:09Z  id=12598621185
 2026-10-25T11:53:51Z  github-pages  6644969  expires 2026-10-26T11:53:50Z  id=12598195916
 2026-10-25T12:04:05Z  github-pages  6644985  expires 2026-10-26T12:04:03Z  id=12598092305
 2026-10-25T11:48:44Z  github-pages  6644982  expires 2026-10-26T11:48:43Z  id=12598065607
@@ -43,7 +44,6 @@ Auto-generated. Refreshed 2026-10-25T12:08:57Z
 2026-10-25T07:25:57Z  github-pages  6644939  expires 2026-10-26T07:25:56Z  id=12590199185
 2026-10-25T06:45:14Z  github-pages  6644936  expires 2026-10-26T06:45:13Z  id=12590088374
 2026-10-25T06:24:53Z  github-pages  6644926  expires 2026-10-26T06:24:52Z  id=12590061394
-2026-10-25T06:14:44Z  github-pages  6644955  expires 2026-10-26T06:14:42Z  id=12589860719
 2026-10-25T06:50:23Z  github-pages  6644928  expires 2026-10-26T06:50:22Z  id=12589739698
 ```
 
