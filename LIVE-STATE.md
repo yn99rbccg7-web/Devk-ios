@@ -1,10 +1,12 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-10-30T20:45:22Z
+Auto-generated. Refreshed 2026-10-30T22:17:16Z
 
 ## recent runs
 ```
-2026-10-30T20:45:16Z  handoff-live  schedule  in_progress/  6521348
+2026-10-30T22:12:06Z  handoff-listener  schedule  in_progress/  fb2e158
+2026-10-30T20:45:26Z  pages build and deployment  dynamic  completed/success  fb2e158
+2026-10-30T20:45:16Z  handoff-live  schedule  completed/success  6521348
 2026-10-30T16:07:18Z  pages build and deployment  dynamic  completed/success  6521348
 2026-10-30T16:07:06Z  handoff-live  schedule  completed/success  b45d0d2
 2026-10-30T16:03:14Z  pages build and deployment  dynamic  completed/success  b45d0d2
@@ -14,12 +16,11 @@ Auto-generated. Refreshed 2026-10-30T20:45:22Z
 2026-10-30T15:43:00Z  pages build and deployment  dynamic  completed/success  507aced
 2026-10-30T15:37:56Z  pages build and deployment  dynamic  completed/success  c7c9877
 2026-10-30T15:32:52Z  pages build and deployment  dynamic  completed/success  39766ab
-2026-10-30T15:27:48Z  pages build and deployment  dynamic  completed/success  7db6dd0
-2026-10-30T15:22:45Z  pages build and deployment  dynamic  completed/success  4aaa372
 ```
 
 ## artifacts
 ```
+2026-10-30T20:45:37Z  github-pages  6645816  expires 2026-10-31T20:45:35Z  id=13009444099
 2026-10-30T16:07:27Z  github-pages  6645830  expires 2026-10-31T16:07:26Z  id=12992451805
 2026-10-30T16:03:24Z  github-pages  6645810  expires 2026-10-31T16:03:23Z  id=12991961433
 2026-10-30T15:58:22Z  github-pages  6645822  expires 2026-10-31T15:58:20Z  id=12991721112
@@ -44,7 +45,6 @@ Auto-generated. Refreshed 2026-10-30T20:45:22Z
 2026-10-30T14:06:59Z  github-pages  6645830  expires 2026-10-31T14:06:58Z  id=12984601391
 2026-10-30T14:23:55Z  github-pages  6645820  expires 2026-10-31T14:23:54Z  id=12984169362
 2026-10-30T14:12:02Z  github-pages  6645825  expires 2026-10-31T14:12:01Z  id=12984167549
-2026-10-30T14:17:06Z  github-pages  6645821  expires 2026-10-31T14:17:06Z  id=12983443975
 ```
 
 ## newest Deck-signed-ipa embedded profile
