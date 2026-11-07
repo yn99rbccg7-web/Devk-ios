@@ -1,10 +1,12 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-11-07T13:41:23Z
+Auto-generated. Refreshed 2026-11-07T18:19:10Z
 
 ## recent runs
 ```
-2026-11-07T13:41:16Z  handoff-live  schedule  queued/  030a89a
+2026-11-07T18:19:04Z  handoff-live  schedule  in_progress/  05a14bc
+2026-11-07T13:41:27Z  pages build and deployment  dynamic  completed/success  05a14bc
+2026-11-07T13:41:16Z  handoff-live  schedule  completed/success  030a89a
 2026-11-07T13:36:59Z  pages build and deployment  dynamic  completed/success  030a89a
 2026-11-07T13:31:53Z  pages build and deployment  dynamic  completed/success  c15a4ac
 2026-11-07T13:26:46Z  pages build and deployment  dynamic  completed/success  ec73134
@@ -14,12 +16,11 @@ Auto-generated. Refreshed 2026-11-07T13:41:23Z
 2026-11-07T13:06:19Z  pages build and deployment  dynamic  completed/success  c5fb5b8
 2026-11-07T13:01:11Z  pages build and deployment  dynamic  completed/success  a76ff16
 2026-11-07T12:56:04Z  pages build and deployment  dynamic  completed/success  7ac8c03
-2026-11-07T12:50:47Z  handoff-listener  schedule  in_progress/  5f2e581
-2026-11-07T06:45:10Z  pages build and deployment  dynamic  completed/success  5f2e581
 ```
 
 ## artifacts
 ```
+2026-11-07T13:41:36Z  github-pages  6644769  expires 2026-11-08T13:41:35Z  id=13576766429
 2026-11-07T13:37:08Z  github-pages  6644769  expires 2026-11-08T13:37:07Z  id=13576581536
 2026-11-07T13:26:54Z  github-pages  6644762  expires 2026-11-08T13:26:53Z  id=13576146453
 2026-11-07T13:21:49Z  github-pages  6644764  expires 2026-11-08T13:21:47Z  id=13576062077
@@ -44,7 +45,6 @@ Auto-generated. Refreshed 2026-11-07T13:41:23Z
 2026-11-07T00:53:48Z  github-pages  6644772  expires 2026-11-08T00:53:47Z  id=13553680191
 2026-11-06T20:56:33Z  github-pages  6644749  expires 2026-11-07T20:56:32Z  id=13540566614
 2026-11-06T21:03:56Z  github-pages  6644778  expires 2026-11-07T21:03:55Z  id=13539739913
-2026-11-06T20:51:30Z  github-pages  6644763  expires 2026-11-07T20:51:29Z  id=13539628287
 ```
 
 ## newest Deck-signed-ipa embedded profile
