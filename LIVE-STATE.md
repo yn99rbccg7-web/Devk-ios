@@ -1,11 +1,13 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-11-12T16:28:59Z
+Auto-generated. Refreshed 2026-11-12T22:24:25Z
 
 ## recent runs
 ```
-2026-11-12T16:28:53Z  handoff-live  schedule  in_progress/  610027b
-2026-11-12T16:28:33Z  pages build and deployment  dynamic  in_progress/  610027b
+2026-11-12T22:24:18Z  handoff-live  schedule  in_progress/  a017aa6
+2026-11-12T16:29:04Z  pages build and deployment  dynamic  completed/success  a017aa6
+2026-11-12T16:28:53Z  handoff-live  schedule  completed/success  610027b
+2026-11-12T16:28:33Z  pages build and deployment  dynamic  completed/success  610027b
 2026-11-12T16:23:25Z  pages build and deployment  dynamic  completed/success  3c37614
 2026-11-12T16:18:17Z  pages build and deployment  dynamic  completed/success  e8cac8b
 2026-11-12T16:13:09Z  pages build and deployment  dynamic  completed/success  bcbef9a
@@ -14,13 +16,12 @@ Auto-generated. Refreshed 2026-11-12T16:28:59Z
 2026-11-12T15:57:54Z  pages build and deployment  dynamic  completed/success  f084dc5
 2026-11-12T15:52:46Z  pages build and deployment  dynamic  completed/success  685f95f
 2026-11-12T15:47:39Z  pages build and deployment  dynamic  completed/success  567c1d8
-2026-11-12T15:42:30Z  pages build and deployment  dynamic  completed/success  04fa486
-2026-11-12T15:37:22Z  pages build and deployment  dynamic  completed/success  4e401fa
 ```
 
 ## artifacts
 ```
 2026-11-12T16:23:35Z  github-pages  6644763  expires 2026-11-13T16:23:34Z  id=13962351871
+2026-11-12T16:29:12Z  github-pages  6644773  expires 2026-11-13T16:29:11Z  id=13961983363
 2026-11-12T16:28:44Z  github-pages  6644762  expires 2026-11-13T16:28:42Z  id=13961873607
 2026-11-12T16:03:11Z  github-pages  6644791  expires 2026-11-13T16:03:10Z  id=13961331831
 2026-11-12T15:52:57Z  github-pages  6644785  expires 2026-11-13T15:52:56Z  id=13961150279
@@ -43,11 +44,13 @@ Auto-generated. Refreshed 2026-11-12T16:28:59Z
 2026-11-12T00:35:11Z  github-pages  6644765  expires 2026-11-13T00:35:10Z  id=13904511009
 2026-11-12T00:40:20Z  github-pages  6644770  expires 2026-11-13T00:40:19Z  id=13904281400
 2026-11-12T00:45:27Z  github-pages  6644771  expires 2026-11-13T00:45:26Z  id=13904018153
-2026-11-11T18:16:25Z  github-pages  6644763  expires 2026-11-12T18:16:24Z  id=13882026792
-2026-11-11T18:13:16Z  github-pages  6644747  expires 2026-11-12T18:13:14Z  id=13881771844
+2026-10-17T20:38:33Z  Deck-signed-ipa  6450744  expires 2026-11-16T20:38:31Z  id=12113617367
 ```
 
 ## newest Deck-signed-ipa embedded profile
 ```
-no Deck-signed-ipa artifact
+Expires: 2027-06-23 08:49:44
+Created: 2026-06-23 08:49:44
+Team: ['VD7465CKUB']
+AllDevices: True
 ```
