@@ -1,10 +1,12 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-11-12T07:53:34Z
+Auto-generated. Refreshed 2026-11-12T15:06:34Z
 
 ## recent runs
 ```
-2026-11-12T07:53:28Z  handoff-live  schedule  in_progress/  5d20bff
+2026-11-12T15:01:22Z  handoff-listener  schedule  in_progress/  707e717
+2026-11-12T07:53:39Z  pages build and deployment  dynamic  completed/success  707e717
+2026-11-12T07:53:28Z  handoff-live  schedule  completed/success  5d20bff
 2026-11-12T00:54:15Z  pages build and deployment  dynamic  completed/success  5d20bff
 2026-11-12T00:54:06Z  handoff-live  schedule  completed/success  c3e0838
 2026-11-12T00:50:25Z  pages build and deployment  dynamic  completed/success  c3e0838
@@ -14,12 +16,11 @@ Auto-generated. Refreshed 2026-11-12T07:53:34Z
 2026-11-12T00:29:45Z  handoff-listener  schedule  completed/success  7f4376f
 2026-11-11T18:16:16Z  pages build and deployment  dynamic  completed/success  62423eb
 2026-11-11T18:16:04Z  handoff-live  schedule  completed/success  62423eb
-2026-11-11T18:13:06Z  pages build and deployment  dynamic  completed/success  62423eb
-2026-11-11T18:07:58Z  pages build and deployment  dynamic  completed/success  d03bb9b
 ```
 
 ## artifacts
 ```
+2026-11-12T07:53:47Z  github-pages  6644772  expires 2026-11-13T07:53:46Z  id=13925766115
 2026-11-12T00:54:27Z  github-pages  6644773  expires 2026-11-13T00:54:25Z  id=13905451282
 2026-11-12T00:50:34Z  github-pages  6644768  expires 2026-11-13T00:50:33Z  id=13905240904
 2026-11-12T00:35:11Z  github-pages  6644765  expires 2026-11-13T00:35:10Z  id=13904511009
@@ -44,7 +45,6 @@ Auto-generated. Refreshed 2026-11-12T07:53:34Z
 2026-11-11T16:56:23Z  github-pages  6644743  expires 2026-11-12T16:56:22Z  id=13873968432
 2026-11-11T17:01:28Z  github-pages  6644752  expires 2026-11-12T17:01:27Z  id=13873959361
 2026-11-11T16:30:42Z  github-pages  6644751  expires 2026-11-12T16:30:41Z  id=13873610659
-2026-11-11T16:51:12Z  github-pages  6644750  expires 2026-11-12T16:51:11Z  id=13873204151
 ```
 
 ## newest Deck-signed-ipa embedded profile
