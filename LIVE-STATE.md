@@ -1,10 +1,12 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-11-12T22:24:25Z
+Auto-generated. Refreshed 2026-11-12T23:33:42Z
 
 ## recent runs
 ```
-2026-11-12T22:24:18Z  handoff-live  schedule  in_progress/  a017aa6
+2026-11-12T23:28:36Z  handoff-listener  schedule  in_progress/  3e5d537
+2026-11-12T22:24:30Z  pages build and deployment  dynamic  completed/success  3e5d537
+2026-11-12T22:24:18Z  handoff-live  schedule  completed/success  a017aa6
 2026-11-12T16:29:04Z  pages build and deployment  dynamic  completed/success  a017aa6
 2026-11-12T16:28:53Z  handoff-live  schedule  completed/success  610027b
 2026-11-12T16:28:33Z  pages build and deployment  dynamic  completed/success  610027b
@@ -14,12 +16,11 @@ Auto-generated. Refreshed 2026-11-12T22:24:25Z
 2026-11-12T16:08:16Z  pages build and deployment  dynamic  completed/success  210aca4
 2026-11-12T16:03:02Z  pages build and deployment  dynamic  completed/success  3236014
 2026-11-12T15:57:54Z  pages build and deployment  dynamic  completed/success  f084dc5
-2026-11-12T15:52:46Z  pages build and deployment  dynamic  completed/success  685f95f
-2026-11-12T15:47:39Z  pages build and deployment  dynamic  completed/success  567c1d8
 ```
 
 ## artifacts
 ```
+2026-11-12T22:24:39Z  github-pages  6644813  expires 2026-11-13T22:24:38Z  id=13989233064
 2026-11-12T16:23:35Z  github-pages  6644763  expires 2026-11-13T16:23:34Z  id=13962351871
 2026-11-12T16:29:12Z  github-pages  6644773  expires 2026-11-13T16:29:11Z  id=13961983363
 2026-11-12T16:28:44Z  github-pages  6644762  expires 2026-11-13T16:28:42Z  id=13961873607
@@ -44,13 +45,9 @@ Auto-generated. Refreshed 2026-11-12T22:24:25Z
 2026-11-12T00:35:11Z  github-pages  6644765  expires 2026-11-13T00:35:10Z  id=13904511009
 2026-11-12T00:40:20Z  github-pages  6644770  expires 2026-11-13T00:40:19Z  id=13904281400
 2026-11-12T00:45:27Z  github-pages  6644771  expires 2026-11-13T00:45:26Z  id=13904018153
-2026-10-17T20:38:33Z  Deck-signed-ipa  6450744  expires 2026-11-16T20:38:31Z  id=12113617367
 ```
 
 ## newest Deck-signed-ipa embedded profile
 ```
-Expires: 2027-06-23 08:49:44
-Created: 2026-06-23 08:49:44
-Team: ['VD7465CKUB']
-AllDevices: True
+no Deck-signed-ipa artifact
 ```
