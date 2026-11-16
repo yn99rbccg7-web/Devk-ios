@@ -1,10 +1,12 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-11-15T23:40:40Z
+Auto-generated. Refreshed 2026-11-16T03:07:45Z
 
 ## recent runs
 ```
-2026-11-15T23:40:33Z  handoff-live  schedule  in_progress/  004639c
+2026-11-16T03:07:38Z  handoff-live  schedule  in_progress/  b9eae31
+2026-11-15T23:40:44Z  pages build and deployment  dynamic  completed/success  b9eae31
+2026-11-15T23:40:33Z  handoff-live  schedule  completed/success  004639c
 2026-11-15T19:54:24Z  pages build and deployment  dynamic  completed/success  004639c
 2026-11-15T19:54:14Z  handoff-live  schedule  completed/success  1949e86
 2026-11-15T19:51:16Z  pages build and deployment  dynamic  completed/success  1949e86
@@ -14,12 +16,11 @@ Auto-generated. Refreshed 2026-11-15T23:40:40Z
 2026-11-15T19:30:49Z  pages build and deployment  dynamic  completed/success  a058b30
 2026-11-15T19:25:42Z  pages build and deployment  dynamic  completed/success  ff1e054
 2026-11-15T19:20:36Z  pages build and deployment  dynamic  completed/success  655e0cd
-2026-11-15T19:15:30Z  pages build and deployment  dynamic  completed/success  fa78fb3
-2026-11-15T19:10:23Z  pages build and deployment  dynamic  completed/success  6925de4
 ```
 
 ## artifacts
 ```
+2026-11-15T23:40:52Z  github-pages  6644780  expires 2026-11-16T23:40:51Z  id=14185873934
 2026-11-15T19:51:28Z  github-pages  6643755  expires 2026-11-16T19:51:27Z  id=14177432393
 2026-11-15T19:46:19Z  github-pages  6644768  expires 2026-11-16T19:46:18Z  id=14177323172
 2026-11-15T19:36:05Z  github-pages  6644763  expires 2026-11-16T19:36:04Z  id=14177295734
@@ -44,7 +45,6 @@ Auto-generated. Refreshed 2026-11-15T23:40:40Z
 2026-11-15T06:41:10Z  github-pages  6644759  expires 2026-11-16T06:41:09Z  id=14150262209
 2026-11-15T06:15:34Z  github-pages  6644765  expires 2026-11-16T06:15:32Z  id=14149901740
 2026-11-15T06:20:40Z  github-pages  6644761  expires 2026-11-16T06:20:38Z  id=14149724270
-2026-11-15T00:19:01Z  github-pages  6644751  expires 2026-11-16T00:19:00Z  id=14139066665
 ```
 
 ## newest Deck-signed-ipa embedded profile
