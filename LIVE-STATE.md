@@ -1,10 +1,12 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-11-16T20:59:37Z
+Auto-generated. Refreshed 2026-11-16T22:00:12Z
 
 ## recent runs
 ```
-2026-11-16T20:59:30Z  handoff-live  schedule  in_progress/  d195e69
+2026-11-16T21:55:05Z  handoff-listener  schedule  in_progress/  62ccc12
+2026-11-16T20:59:41Z  pages build and deployment  dynamic  completed/success  62ccc12
+2026-11-16T20:59:30Z  handoff-live  schedule  completed/success  d195e69
 2026-11-16T11:08:21Z  pages build and deployment  dynamic  completed/success  d195e69
 2026-11-16T11:08:11Z  handoff-live  schedule  completed/success  0bda420
 2026-11-16T11:08:04Z  pages build and deployment  dynamic  completed/cancelled  0bda420
@@ -14,12 +16,11 @@ Auto-generated. Refreshed 2026-11-16T20:59:37Z
 2026-11-16T10:47:44Z  pages build and deployment  dynamic  completed/success  f49ace9
 2026-11-16T10:42:39Z  pages build and deployment  dynamic  completed/success  da71688
 2026-11-16T10:37:35Z  pages build and deployment  dynamic  completed/success  f5db8db
-2026-11-16T10:32:30Z  pages build and deployment  dynamic  completed/success  9d7fbc8
-2026-11-16T10:27:25Z  pages build and deployment  dynamic  completed/success  f42ff5a
 ```
 
 ## artifacts
 ```
+2026-11-16T20:59:50Z  github-pages  6644776  expires 2026-11-17T20:59:49Z  id=14271232183
 2026-11-16T11:03:12Z  github-pages  6644758  expires 2026-11-17T11:03:10Z  id=14220700863
 2026-11-16T10:52:58Z  github-pages  6644756  expires 2026-11-17T10:52:57Z  id=14219990152
 2026-11-16T11:08:34Z  github-pages  6644764  expires 2026-11-17T11:08:33Z  id=14219788255
@@ -44,7 +45,6 @@ Auto-generated. Refreshed 2026-11-16T20:59:37Z
 2026-11-16T09:26:38Z  github-pages  6644755  expires 2026-11-17T09:26:37Z  id=14212367148
 2026-11-16T09:21:36Z  github-pages  6644756  expires 2026-11-17T09:21:35Z  id=14211957291
 2026-11-16T09:16:31Z  github-pages  6644756  expires 2026-11-17T09:16:29Z  id=14211717531
-2026-11-16T08:56:11Z  github-pages  6644742  expires 2026-11-17T08:56:09Z  id=14211055307
 ```
 
 ## newest Deck-signed-ipa embedded profile
