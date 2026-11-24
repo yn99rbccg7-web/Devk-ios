@@ -1,9 +1,10 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-11-24T10:48:01Z
+Auto-generated. Refreshed 2026-11-24T10:53:08Z
 
 ## recent runs
 ```
+2026-11-24T10:48:06Z  pages build and deployment  dynamic  completed/success  7e6d436
 2026-11-24T10:42:58Z  pages build and deployment  dynamic  completed/success  5f158fa
 2026-11-24T10:37:51Z  pages build and deployment  dynamic  completed/success  557b80f
 2026-11-24T10:32:44Z  pages build and deployment  dynamic  completed/success  7194177
@@ -15,7 +16,6 @@ Auto-generated. Refreshed 2026-11-24T10:48:01Z
 2026-11-24T10:02:00Z  pages build and deployment  dynamic  completed/success  47ecbbc
 2026-11-24T09:56:52Z  pages build and deployment  dynamic  completed/success  c52fdc4
 2026-11-24T09:51:45Z  pages build and deployment  dynamic  completed/success  51dc3ea
-2026-11-24T09:46:38Z  pages build and deployment  dynamic  completed/success  a8c2aa9
 ```
 
 ## artifacts
@@ -24,6 +24,7 @@ Auto-generated. Refreshed 2026-11-24T10:48:01Z
 2026-11-24T10:43:11Z  github-pages  6643770  expires 2026-11-25T10:43:10Z  id=14911448098
 2026-11-24T10:38:00Z  github-pages  6645011  expires 2026-11-25T10:37:59Z  id=14911346771
 2026-11-24T10:27:45Z  github-pages  6645006  expires 2026-11-25T10:27:44Z  id=14911310354
+2026-11-24T10:48:15Z  github-pages  6645009  expires 2026-11-25T10:48:14Z  id=14911239172
 2026-11-24T10:22:39Z  github-pages  6644995  expires 2026-11-25T10:22:38Z  id=14911085658
 2026-11-24T10:12:24Z  github-pages  6645001  expires 2026-11-25T10:12:23Z  id=14910371171
 2026-11-24T10:17:32Z  github-pages  6645007  expires 2026-11-25T10:17:31Z  id=14910176788
@@ -44,7 +45,6 @@ Auto-generated. Refreshed 2026-11-24T10:48:01Z
 2026-11-24T02:33:52Z  github-pages  6645021  expires 2026-11-25T02:33:52Z  id=14884271547
 2026-11-24T02:28:48Z  github-pages  6645023  expires 2026-11-25T02:28:46Z  id=14883668478
 2026-11-24T02:18:38Z  github-pages  6645019  expires 2026-11-25T02:18:37Z  id=14883192493
-2026-11-24T02:23:42Z  github-pages  6645004  expires 2026-11-25T02:23:41Z  id=14882999069
 ```
 
 ## newest Deck-signed-ipa embedded profile
