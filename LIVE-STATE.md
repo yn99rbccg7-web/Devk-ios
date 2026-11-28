@@ -1,9 +1,10 @@
 # LIVE STATE
 
-Auto-generated. Refreshed 2026-11-28T08:23:04Z
+Auto-generated. Refreshed 2026-11-28T08:28:12Z
 
 ## recent runs
 ```
+2026-11-28T08:23:08Z  pages build and deployment  dynamic  completed/success  ed668f1
 2026-11-28T08:18:01Z  pages build and deployment  dynamic  completed/success  cc2de0a
 2026-11-28T08:12:53Z  pages build and deployment  dynamic  completed/success  b92ab7b
 2026-11-28T08:07:46Z  pages build and deployment  dynamic  completed/success  31087e7
@@ -15,7 +16,6 @@ Auto-generated. Refreshed 2026-11-28T08:23:04Z
 2026-11-28T07:37:01Z  pages build and deployment  dynamic  completed/success  cba6b89
 2026-11-28T07:31:45Z  handoff-listener  schedule  in_progress/  1b82876
 2026-11-28T02:09:55Z  pages build and deployment  dynamic  completed/success  1b82876
-2026-11-28T02:09:46Z  handoff-live  schedule  completed/success  4b623d3
 ```
 
 ## artifacts
@@ -25,6 +25,7 @@ Auto-generated. Refreshed 2026-11-28T08:23:04Z
 2026-11-28T08:13:10Z  github-pages  6645086  expires 2026-11-29T08:13:08Z  id=15255123470
 2026-11-28T08:07:53Z  github-pages  6645035  expires 2026-11-29T08:07:52Z  id=15254846905
 2026-11-28T07:57:45Z  github-pages  6645077  expires 2026-11-29T07:57:43Z  id=15254801543
+2026-11-28T08:23:19Z  github-pages  6645041  expires 2026-11-29T08:23:17Z  id=15254499140
 2026-11-28T07:52:31Z  github-pages  6645038  expires 2026-11-29T07:52:30Z  id=15254278766
 2026-11-28T07:42:18Z  github-pages  6645036  expires 2026-11-29T07:42:16Z  id=15254153919
 2026-11-28T07:37:09Z  github-pages  6645036  expires 2026-11-29T07:37:08Z  id=15253747831
@@ -44,7 +45,6 @@ Auto-generated. Refreshed 2026-11-28T08:23:04Z
 2026-11-28T01:02:28Z  github-pages  6645002  expires 2026-11-29T01:02:26Z  id=15241390732
 2026-11-28T01:33:00Z  github-pages  6645004  expires 2026-11-29T01:32:59Z  id=15241149805
 2026-11-28T01:12:39Z  github-pages  6645008  expires 2026-11-29T01:12:38Z  id=15241147405
-2026-11-28T00:57:24Z  github-pages  6645009  expires 2026-11-29T00:57:22Z  id=15240798785
 ```
 
 ## newest Deck-signed-ipa embedded profile
